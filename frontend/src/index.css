@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: #0b1120;
+    color: #f1f5f9;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #111827; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .btn-primary {
+    @apply bg-aurbis-blue hover:bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg transition-all duration-200 active:scale-95;
+  }
+  .btn-coral {
+    @apply bg-aurbis-coral hover:bg-orange-500 text-white font-semibold px-5 py-2.5 rounded-lg transition-all duration-200 active:scale-95;
+  }
+  .btn-outline {
+    @apply border border-white/20 hover:border-aurbis-blue-light text-white/80 hover:text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200;
+  }
+  .tag-blue  { @apply text-xs bg-blue-900/60 text-blue-300 px-2.5 py-1 rounded-full border border-blue-700/40; }
+  .tag-coral { @apply text-xs bg-orange-900/60 text-orange-300 px-2.5 py-1 rounded-full border border-orange-700/40; }
+  .tag-teal  { @apply text-xs bg-teal-900/60 text-teal-300 px-2.5 py-1 rounded-full border border-teal-700/40; }
+}
+
+/* Markdown prose inside chat */
+.chat-prose h1,
+.chat-prose h2,
+.chat-prose h3 { @apply font-semibold text-white mt-2 mb-1; }
+.chat-prose h1 { font-size: 1.1rem; }
+.chat-prose h2 { font-size: 1rem; }
+.chat-prose p  { @apply text-slate-300 mb-2 leading-relaxed; }
+.chat-prose ul { @apply space-y-1 mb-2 pl-2; }
+.chat-prose li { @apply text-slate-300 flex gap-2; }
+.chat-prose li::before { content: "•"; @apply text-aurbis-blue-light; }
+.chat-prose strong { @apply text-white font-semibold; }
+.chat-prose table { @apply w-full text-sm border-collapse mb-3; }
+.chat-prose th { @apply text-left text-white/70 border-b border-white/10 pb-1 pr-4 font-medium; }
+.chat-prose td { @apply text-slate-300 border-b border-white/5 py-1.5 pr-4; }
+.chat-prose code { @apply bg-white/10 text-blue-300 px-1.5 py-0.5 rounded text-xs; }
+
+@keyframes micPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+@keyframes fadeChip {
+  from { opacity: 0; transform: scale(0.85) translateY(3px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}

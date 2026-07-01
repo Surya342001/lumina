@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Environment variables
+.env
+!.env.example
+
+# Node
+node_modules/
+dist/
+.cache/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Logs
+*.log
+nohup.out
+/tmp/
+
+# ChromaDB data (regenerated on startup)
+backend/chroma_db/
+
+# Test files
+backend/test_flow.py
