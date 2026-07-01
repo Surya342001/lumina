@@ -54,6 +54,32 @@ def _extract_email(text: str) -> Optional[str]:
     return None
 
 
+def _extract_date(text: str) -> Optional[str]:
+    """Extract common date phrases, including real user typos."""
+    msg = text.lower()
+    tomorrow_patterns = [
+        'tomorrow', 'tommrow', 'tomorow', 'tommorow', 'tommorrow',
+        'tmrw', 'tmr', 'tmrw', 'tomo', 'tomrw', 'tomarrow'
+    ]
+    if any(pattern in msg for pattern in tomorrow_patterns):
+        return 'Tomorrow'
+    if any(pattern in msg for pattern in ['today', 'tonight', 'tdy']):
+        return 'Today'
+
+    for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']:
+        if day in msg:
+            return day.capitalize()
+
+    date_match = re.search(
+        r'(\d{1,2}(?:st|nd|rd|th)?\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)|\d{1,2}[/-]\d{1,2})',
+        msg,
+        re.IGNORECASE
+    )
+    if date_match:
+        return date_match.group(1)
+    return None
+
+
 def _capacity_hint(cap: int) -> str:
     """One-liner hint about capacity-appropriate spaces."""
     if cap <= 4:
@@ -473,7 +499,7 @@ class AurbisRAG:
                 'time': self._extract_time(message),
                 'location': self._extract_location(message),
                 'space_type': None,
-                'date': None,
+                'date': _extract_date(message),
                 'capacity': _extract_capacity(message),
             }
             if any(w in msg for w in ['conference room', 'meeting room', 'boardroom', 'conference call']):
@@ -539,21 +565,15 @@ class AurbisRAG:
                 booking['space_type'] = 'office'
             elif any(w in msg for w in ['desk', 'hot', 'cowork', 'flexible']) or shortcut == '4':
                 booking['space_type'] = 'desk'
-            elif self._extract_time(message) or any(d in msg for d in ['tomorrow','today','tonight','monday','tuesday','wednesday','thursday','friday','saturday','sunday']):
+            elif self._extract_time(message) or _extract_date(message):
                 # User skipped the type step and gave a date/time — default conference + extract datetime now
                 booking['space_type'] = 'conference'
                 t = self._extract_time(message)
                 if t:
                     booking['time'] = t
-                if 'today' in msg or 'tonight' in msg:
-                    booking['date'] = 'Today'
-                elif 'tomorrow' in msg:
-                    booking['date'] = 'Tomorrow'
-                else:
-                    for _d in ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']:
-                        if _d in msg:
-                            booking['date'] = _d.capitalize()
-                            break
+                date_val = _extract_date(message)
+                if date_val:
+                    booking['date'] = date_val
             else:
                 # "any", "you suggest", "doesn't matter", unrecognised → pick best for them
                 cap = booking.get('capacity') or 0
@@ -579,19 +599,9 @@ class AurbisRAG:
         elif step == 'awaiting_datetime':
             t = self._extract_time(message)
             if t: booking['time'] = t
-            if 'today' in msg or 'tonight' in msg:
-                booking['date'] = 'Today'
-            elif 'tomorrow' in msg:
-                booking['date'] = 'Tomorrow'
-            else:
-                for d in ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']:
-                    if d in msg:
-                        booking['date'] = d.capitalize()
-                        break
-                if not booking.get('date'):
-                    dm = re.search(r'(\d{1,2}(?:st|nd|rd|th)?\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)|\d{1,2}[/-]\d{1,2})', msg, re.IGNORECASE)
-                    if dm:
-                        booking['date'] = dm.group(1)
+            date_val = _extract_date(message)
+            if date_val:
+                booking['date'] = date_val
             # "anytime", "flexible", "fine", "ok", "any" etc. → default Today 3PM
             if not booking.get('date') and not booking.get('time'):
                 if any(w in msg for w in ['anytime', 'any time', 'flexible', 'whenever', 'up to you', 'you decide', 'you pick', 'asap', 'now', 'fine', 'ok', 'okay', 'sure', 'any', 'doesn\'t matter', 'works for me']):
@@ -731,7 +741,7 @@ class AurbisRAG:
         if 'email' not in booking:
             booking['step'] = 'awaiting_email'
             self.booking_sessions[session_id] = booking
-            return {"answer": f"Almost there, **{name}**! 🙌\n\nWhat's your **email address**? I'll send the booking confirmation straight to your inbox.\n\n*(Or say **skip** if you prefer not to.)*", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
+            return {"answer": f"Got it, **{name}** — **{date} at {time_val}** is set. 🙌\n\nWhat's your **email address**? I'll send the booking confirmation straight to your inbox.\n\n*(Or say **skip** if you prefer not to.)*", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
 
         # All details collected — show summary for confirmation
         booking['step'] = 'confirming'
