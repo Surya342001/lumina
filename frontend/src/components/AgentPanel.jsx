@@ -131,7 +131,7 @@ export default function AgentPanel() {
   const [mode, setMode] = useState('react')        // 'react' | 'decompose'
   const [tools, setTools] = useState([])
   const [finalAnswer, setFinalAnswer] = useState(null)
-  const stepsEndRef = useRef(null)
+  const outputRef = useRef(null)
   const sourceRef = useRef(null)
 
   // Fetch tool list on mount
@@ -142,10 +142,11 @@ export default function AgentPanel() {
       .catch(() => {})
   }, [])
 
-  // Auto-scroll as steps arrive
+  // Auto-scroll the OUTPUT CONTAINER (not the page) as steps arrive
   useEffect(() => {
-    stepsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [steps])
+    const el = outputRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [steps, tasks])
 
   // ── Run ReAct Agent ─────────────────────────────────────────────────────────
   function runReact() {
@@ -326,7 +327,7 @@ export default function AgentPanel() {
       )}
 
       {/* ── Output area ────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-0" style={{ scrollBehavior: 'smooth' }}>
+      <div ref={outputRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-0">
 
         {/* Empty state */}
         {!hasOutput && !isRunning && (
@@ -404,7 +405,6 @@ export default function AgentPanel() {
           </button>
         )}
 
-        <div ref={stepsEndRef} />
       </div>
 
       {/* ── Stats footer ───────────────────────────────────────────────────── */}

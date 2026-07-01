@@ -22,8 +22,8 @@ export default function App() {
         <HeroSection />
 
         {/* Main Demo Section: Chat + Spaces */}
-        <section id="demo" className="px-4 md:px-6 pb-8">
-          <div className="max-w-7xl mx-auto">
+        <section id="demo" className="px-4 md:px-6 pb-8" style={{ overflow: 'hidden' }}>
+          <div className="max-w-7xl mx-auto" style={{ minHeight: '820px' }}>
             {/* Section label + mode switcher */}
             <div className="flex items-center gap-3 mb-4">
               <div className="h-px flex-1 bg-white/6" />
