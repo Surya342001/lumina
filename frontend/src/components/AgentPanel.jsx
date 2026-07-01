@@ -1,101 +1,124 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
-// ── Tool meta (icon + colour) ─────────────────────────────────────────────────
+const API_BASE = 'http://localhost:8000'
+
 const TOOL_META = {
-  search_spaces:      { icon: '🔍', color: 'text-cyan-400',   bg: 'bg-cyan-500/10 border-cyan-500/30' },
-  get_space_details:  { icon: '📋', color: 'text-violet-400', bg: 'bg-violet-500/10 border-violet-500/30' },
-  calculate_price:    { icon: '💰', color: 'text-amber-400',  bg: 'bg-amber-500/10 border-amber-500/30' },
-  compare_spaces:     { icon: '⚖️', color: 'text-pink-400',   bg: 'bg-pink-500/10 border-pink-500/30' },
-  check_availability: { icon: '📅', color: 'text-emerald-400',bg: 'bg-emerald-500/10 border-emerald-500/30' },
+  search_spaces: { icon: '🔍', label: 'Search Spaces', color: 'text-cyan-300', bg: 'bg-cyan-500/10 border-cyan-500/30' },
+  get_space_details: { icon: '📋', label: 'Get Details', color: 'text-violet-300', bg: 'bg-violet-500/10 border-violet-500/30' },
+  calculate_price: { icon: '💰', label: 'Price', color: 'text-amber-300', bg: 'bg-amber-500/10 border-amber-500/30' },
+  compare_spaces: { icon: '⚖️', label: 'Compare', color: 'text-pink-300', bg: 'bg-pink-500/10 border-pink-500/30' },
+  check_availability: { icon: '📅', label: 'Availability', color: 'text-emerald-300', bg: 'bg-emerald-500/10 border-emerald-500/30' },
 }
 
 const STEP_META = {
-  thought:     { icon: '💭', label: 'Reasoning',   border: 'border-blue-500/30',    bg: 'bg-blue-500/8',    text: 'text-blue-300' },
-  action:      { icon: '🔧', label: 'Tool Call',   border: 'border-amber-500/30',   bg: 'bg-amber-500/8',   text: 'text-amber-300' },
-  observation: { icon: '📊', label: 'Result',      border: 'border-green-500/30',   bg: 'bg-green-500/8',   text: 'text-green-300' },
-  final:       { icon: '✅', label: 'Final Answer', border: 'border-emerald-500/40', bg: 'bg-emerald-500/10', text: 'text-emerald-300' },
-  error:       { icon: '❌', label: 'Error',        border: 'border-red-500/30',     bg: 'bg-red-500/8',     text: 'text-red-300' },
+  thought: { icon: '💭', label: 'AI thinks', helper: 'Nova decides what to do next', border: 'border-blue-500/30', bg: 'bg-blue-500/8', text: 'text-blue-300' },
+  action: { icon: '🔧', label: 'Tool used', helper: 'Nova calls a backend function', border: 'border-amber-500/30', bg: 'bg-amber-500/8', text: 'text-amber-300' },
+  observation: { icon: '📊', label: 'Backend result', helper: 'Database result returned', border: 'border-green-500/30', bg: 'bg-green-500/8', text: 'text-green-300' },
+  final: { icon: '✅', label: 'Final answer', helper: 'Customer-ready recommendation', border: 'border-emerald-500/40', bg: 'bg-emerald-500/10', text: 'text-emerald-300' },
+  error: { icon: '⚠️', label: 'Needs attention', helper: 'Something failed while running', border: 'border-red-500/30', bg: 'bg-red-500/8', text: 'text-red-300' },
 }
 
-// ── Example goals ─────────────────────────────────────────────────────────────
-const EXAMPLE_GOALS = [
-  'Find the best conference room for 12 people in Koramangala under ₹2000/hr',
-  'Compare Innovation Hub and Sprint Room — which gives better value?',
-  'Book a quiet private space for 4 people in Whitefield for 3 hours tomorrow',
-  'What is the cheapest event venue that fits 100 people?',
-  'Find and price a team offsite space for 20 people for a full day',
-]
+const MODE_INFO = {
+  react: {
+    title: 'Run Agent',
+    subtitle: 'Nova searches, compares, calculates, checks availability, and gives one final answer.',
+    button: 'Run Agent',
+    placeholder: 'Find the best conference room for 12 people in Bellandur under ₹2000/hr tomorrow afternoon',
+  },
+  decompose: {
+    title: 'Create Goal Plan',
+    subtitle: 'Nova converts one big request into small backend tasks before execution.',
+    button: 'Create Plan',
+    placeholder: 'Plan an offsite with search, price comparison, availability check, and final recommendation',
+  },
+}
 
-// ── Tool Pill ─────────────────────────────────────────────────────────────────
+const EXAMPLES = {
+  react: [
+    ['Find and recommend', 'Find the best conference room for 12 people in Bellandur under ₹2000/hr tomorrow afternoon'],
+    ['Compare spaces', 'Compare Innovation Hub and Sprint Room for a tech team of 10 and tell me which is better value'],
+    ['Price a booking', 'Find a quiet private office for 4 people in Whitefield and calculate the price for 3 hours'],
+  ],
+  decompose: [
+    ['Team offsite', 'Plan a team offsite for 25 people with space search, price comparison, availability check, and final recommendation'],
+    ['Large event', 'Break down how to shortlist an event venue for 100 people near Bannerghatta with budget and availability checks'],
+    ['Client meeting', 'Create a step-by-step plan to choose and book a premium client meeting room in MG Road'],
+  ],
+}
+
 function ToolPill({ name }) {
-  const meta = TOOL_META[name] || { icon: '🔧', color: 'text-slate-400', bg: 'bg-white/5 border-white/10' }
+  const meta = TOOL_META[name] || { icon: '🔧', label: name, color: 'text-slate-400', bg: 'bg-white/5 border-white/10' }
   return (
-    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border font-mono ${meta.bg} ${meta.color}`}>
-      {meta.icon} {name}
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${meta.bg} ${meta.color}`}>
+      <span>{meta.icon}</span>
+      <span>{meta.label}</span>
     </span>
   )
 }
 
-// ── Single step card ──────────────────────────────────────────────────────────
-function StepCard({ step, index }) {
+function ExampleButton({ title, goal, onPick }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onPick(goal)}
+      className="w-full rounded-xl border border-white/8 bg-white/4 p-3 text-left transition-all hover:border-blue-400/35 hover:bg-blue-500/8"
+    >
+      <p className="text-xs font-semibold uppercase tracking-wider text-blue-300/80">{title}</p>
+      <p className="mt-1 text-sm leading-relaxed text-slate-300">{goal}</p>
+    </button>
+  )
+}
+
+function StepCard({ step }) {
   const meta = STEP_META[step.type] || STEP_META.thought
   const toolMeta = step.tool ? TOOL_META[step.tool] : null
-
   return (
-    <div
-      className={`border rounded-xl p-3 mb-2 ${meta.border} ${meta.bg}`}
-      style={{ animation: 'slideDown 0.25s ease-out' }}
-    >
-      {/* Header row */}
-      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-        <span className="text-base">{meta.icon}</span>
-        <span className={`text-xs font-bold uppercase tracking-widest ${meta.text} opacity-80`}>
-          {meta.label}
-        </span>
-        {step.step && (
-          <span className="text-xs text-slate-600 ml-auto">step {step.step}</span>
-        )}
+    <div className={`mb-2 rounded-xl border p-3 ${meta.border} ${meta.bg}`} style={{ animation: 'slideDown 0.2s ease-out' }}>
+      <div className="mb-2 flex items-start gap-2">
+        <span className="mt-0.5 text-base">{meta.icon}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-bold uppercase tracking-wider ${meta.text}`}>{meta.label}</span>
+            {step.step && <span className="ml-auto text-xs text-slate-600">step {step.step}</span>}
+          </div>
+          <p className="text-xs text-slate-600">{meta.helper}</p>
+        </div>
       </div>
 
-      {/* Tool call details */}
       {step.type === 'action' && step.tool && (
-        <div className={`flex items-center gap-2 mb-2 text-xs px-2 py-1.5 rounded-lg border ${toolMeta?.bg || 'bg-white/5 border-white/10'}`}>
-          <span>{toolMeta?.icon || '🔧'}</span>
-          <span className={`font-mono font-semibold ${toolMeta?.color || 'text-slate-300'}`}>{step.tool}</span>
-          {step.input && Object.keys(step.input).length > 0 && (
-            <span className="text-slate-500">
-              ({Object.entries(step.input).map(([k, v]) => `${k}="${v}"`).join(', ')})
-            </span>
-          )}
+        <div className={`mb-2 rounded-lg border px-2.5 py-2 text-xs ${toolMeta?.bg || 'bg-white/5 border-white/10'}`}>
+          <div className="flex flex-wrap items-center gap-2">
+            <span>{toolMeta?.icon || '🔧'}</span>
+            <span className={`font-semibold ${toolMeta?.color || 'text-slate-300'}`}>{toolMeta?.label || step.tool}</span>
+            {step.input && Object.keys(step.input).length > 0 && (
+              <span className="break-all font-mono text-slate-500">
+                {Object.entries(step.input).map(([key, value]) => `${key}: ${value}`).join(' · ')}
+              </span>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Content */}
-      {step.content && (
-        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${meta.text} opacity-90`}>
-          {step.content}
-        </p>
-      )}
+      {step.content && <p className={`whitespace-pre-wrap text-sm leading-relaxed ${meta.text}`}>{step.content}</p>}
     </div>
   )
 }
 
-// ── Task tree for goal decomposition ─────────────────────────────────────────
 function TaskTree({ tasks, activeId }) {
   const statusStyle = {
-    pending:    'bg-slate-700 text-slate-400',
-    running:    'bg-blue-500/30 text-blue-300 animate-pulse',
-    done:       'bg-emerald-500/20 text-emerald-400',
+    pending: 'bg-slate-700 text-slate-400',
+    running: 'bg-blue-500/30 text-blue-300 animate-pulse',
+    done: 'bg-emerald-500/20 text-emerald-400',
   }
+
   return (
     <div className="space-y-2">
-      {tasks.map((t, i) => {
-        const status = t.id === activeId ? 'running' : t.status === 'done' ? 'done' : 'pending'
-        const toolMeta = TOOL_META[t.tool] || { icon: '🔧', color: 'text-slate-400' }
+      {tasks.map(task => {
+        const status = task.id === activeId ? 'running' : task.status === 'done' ? 'done' : 'pending'
         return (
           <div
-            key={t.id}
-            className={`flex items-start gap-3 p-2.5 rounded-xl border transition-all ${
+            key={task.id}
+            className={`flex items-start gap-3 rounded-xl border p-3 transition-all ${
               status === 'running'
                 ? 'border-blue-500/40 bg-blue-500/8'
                 : status === 'done'
@@ -103,14 +126,14 @@ function TaskTree({ tasks, activeId }) {
                 : 'border-white/8 bg-white/3'
             }`}
           >
-            {/* Step number */}
-            <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${statusStyle[status]}`}>
-              {status === 'done' ? '✓' : t.id}
+            <div className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${statusStyle[status]}`}>
+              {status === 'done' ? '✓' : task.id}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-slate-300 leading-snug">{t.task}</p>
-              <div className="mt-1">
-                <ToolPill name={t.tool} />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm leading-snug text-slate-300">{task.task}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <ToolPill name={task.tool} />
+                <span className="text-xs text-slate-600">{status === 'running' ? 'checking now' : status}</span>
               </div>
             </div>
           </div>
@@ -120,7 +143,73 @@ function TaskTree({ tasks, activeId }) {
   )
 }
 
-// ── Main Agent Panel ──────────────────────────────────────────────────────────
+function SharePanel({ goal, result }) {
+  const [email, setEmail] = useState('')
+  const [status, setStatus] = useState('')
+  const [sending, setSending] = useState(false)
+
+  const whatsappUrl = useMemo(() => {
+    const text = `Aurbis Nova Agent Result\n\nGoal: ${goal}\n\nResult:\n${result}`
+    return `https://wa.me/?text=${encodeURIComponent(text)}`
+  }, [goal, result])
+
+  async function sendEmail() {
+    if (!email.trim()) {
+      setStatus('Enter an email address first.')
+      return
+    }
+    setSending(true)
+    setStatus('Sending result...')
+    try {
+      const response = await fetch(`${API_BASE}/api/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), goal, result }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.detail || 'Could not send email')
+      setStatus(data.message || 'Result shared.')
+    } catch (error) {
+      setStatus(error.message)
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <div className="mt-3 rounded-xl border border-emerald-500/25 bg-emerald-500/8 p-3">
+      <div className="mb-2 flex items-center gap-2">
+        <span className="text-sm">📤</span>
+        <p className="text-sm font-semibold text-emerald-300">Send this result</p>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input
+          value={email}
+          onChange={event => setEmail(event.target.value)}
+          placeholder="Email address"
+          className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-emerald-400/50 focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={sendEmail}
+          disabled={sending}
+          className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-black transition-all hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {sending ? 'Sending...' : 'Email'}
+        </button>
+        <button
+          type="button"
+          onClick={() => window.open(whatsappUrl, '_blank', 'noopener,noreferrer')}
+          className="rounded-lg border border-emerald-400/35 bg-emerald-400/10 px-3 py-2 text-sm font-semibold text-emerald-300 transition-all hover:bg-emerald-400/15"
+        >
+          WhatsApp
+        </button>
+      </div>
+      {status && <p className="mt-2 text-xs text-slate-500">{status}</p>}
+    </div>
+  )
+}
+
 export default function AgentPanel() {
   const [goal, setGoal] = useState('')
   const [steps, setSteps] = useState([])
@@ -128,89 +217,92 @@ export default function AgentPanel() {
   const [activeTaskId, setActiveTaskId] = useState(null)
   const [running, setRunning] = useState(false)
   const [decomposing, setDecomposing] = useState(false)
-  const [mode, setMode] = useState('react')        // 'react' | 'decompose'
+  const [mode, setMode] = useState('react')
   const [tools, setTools] = useState([])
   const [finalAnswer, setFinalAnswer] = useState(null)
   const outputRef = useRef(null)
   const sourceRef = useRef(null)
 
-  // Fetch tool list on mount
   useEffect(() => {
-    fetch('http://localhost:8000/api/agent/tools')
-      .then(r => r.json())
-      .then(d => setTools(d.tools || []))
+    fetch(`${API_BASE}/api/agent/tools`)
+      .then(response => response.json())
+      .then(data => setTools(data.tools || []))
       .catch(() => {})
   }, [])
 
-  // Auto-scroll the OUTPUT CONTAINER (not the page) as steps arrive
   useEffect(() => {
-    const el = outputRef.current
-    if (el) el.scrollTop = el.scrollHeight
-  }, [steps, tasks])
+    const element = outputRef.current
+    if (element) element.scrollTop = element.scrollHeight
+  }, [steps, tasks, finalAnswer])
 
-  // ── Run ReAct Agent ─────────────────────────────────────────────────────────
+  function resetOutput() {
+    setSteps([])
+    setTasks([])
+    setActiveTaskId(null)
+    setFinalAnswer(null)
+  }
+
+  function buildPlanResult(taskList = tasks) {
+    return taskList.map(task => `${task.id}. ${task.task} (${task.tool})`).join('\n')
+  }
+
   function runReact() {
     if (!goal.trim() || running) return
     setRunning(true)
-    setSteps([])
-    setFinalAnswer(null)
+    resetOutput()
 
     if (sourceRef.current) sourceRef.current.close()
 
-    const url = `http://localhost:8000/api/agent/stream?goal=${encodeURIComponent(goal.trim())}`
-    const es = new EventSource(url)
-    sourceRef.current = es
+    const eventSource = new EventSource(`${API_BASE}/api/agent/stream?goal=${encodeURIComponent(goal.trim())}`)
+    sourceRef.current = eventSource
 
-    es.addEventListener('step', e => {
-      const data = JSON.parse(e.data)
-      setSteps(prev => [...prev, data])
+    eventSource.addEventListener('step', event => {
+      const data = JSON.parse(event.data)
+      setSteps(previous => [...previous, data])
       if (data.type === 'final') setFinalAnswer(data.content)
     })
 
-    es.addEventListener('done', () => {
-      es.close()
+    eventSource.addEventListener('done', () => {
+      eventSource.close()
       setRunning(false)
     })
 
-    es.addEventListener('error', () => {
-      es.close()
+    eventSource.addEventListener('error', () => {
+      eventSource.close()
       setRunning(false)
     })
 
-    es.onerror = () => {
-      es.close()
+    eventSource.onerror = () => {
+      eventSource.close()
       setRunning(false)
     }
   }
 
-  // ── Goal Decomposition ──────────────────────────────────────────────────────
   async function runDecompose() {
     if (!goal.trim() || decomposing) return
     setDecomposing(true)
-    setTasks([])
-    setActiveTaskId(null)
-    setFinalAnswer(null)
+    resetOutput()
 
     try {
-      const res = await fetch('http://localhost:8000/api/agent/decompose', {
+      const response = await fetch(`${API_BASE}/api/agent/decompose`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ goal: goal.trim() }),
       })
-      const data = await res.json()
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.detail || 'Could not create a plan')
+
       const taskList = data.tasks || []
       setTasks(taskList)
-
-      // Simulate executing tasks one by one
       for (const task of taskList) {
         setActiveTaskId(task.id)
-        await new Promise(r => setTimeout(r, 1200 + Math.random() * 800))
-        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'done' } : t))
+        await new Promise(resolve => setTimeout(resolve, 650))
+        setTasks(previous => previous.map(item => (item.id === task.id ? { ...item, status: 'done' } : item)))
       }
       setActiveTaskId(null)
-      setFinalAnswer(`✅ All ${taskList.length} subtasks planned. Switch to **Agent Mode** to execute them with live AI reasoning.`)
-    } catch (e) {
-      setTasks([{ id: 1, task: 'Failed to decompose goal: ' + e.message, tool: 'search_spaces', status: 'pending' }])
+      setFinalAnswer(`Plan ready with ${taskList.length} backend tasks. Use Run Agent with the same goal when you want Nova to execute it live.`)
+    } catch (error) {
+      setTasks([{ id: 1, task: `Plan failed: ${error.message}`, tool: 'search_spaces', status: 'pending' }])
     } finally {
       setDecomposing(false)
     }
@@ -227,193 +319,148 @@ export default function AgentPanel() {
 
   const isRunning = running || decomposing
   const hasOutput = steps.length > 0 || tasks.length > 0
+  const modeInfo = MODE_INFO[mode]
+  const shareResult = mode === 'react' ? finalAnswer : buildPlanResult()
 
   return (
-    <div className="flex flex-col h-full bg-[#0f1117] rounded-2xl border border-white/8 overflow-hidden">
-
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 px-4 pt-4 pb-3 border-b border-white/8">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-sm">
-            🤖
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/8 bg-[#0f1117]">
+      <div className="flex-shrink-0 border-b border-white/8 px-4 pb-3 pt-4">
+        <div className="mb-3 flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-emerald-500 text-sm">🤖</div>
+          <div>
+            <p className="text-sm font-semibold text-white">Nova Agent Workspace</p>
+            <p className="text-xs text-slate-600">Autonomous search, planning, pricing, and sharing</p>
           </div>
-          <span className="text-white font-semibold text-sm">Nova Agent</span>
-          <span className="ml-auto text-xs text-slate-600 bg-white/5 px-2 py-0.5 rounded-full">
-            ReAct · LangChain · Ollama llama3
-          </span>
+          <span className="ml-auto rounded-full border border-white/8 bg-white/5 px-2 py-1 text-xs text-slate-500">41 spaces · 13 areas</span>
         </div>
 
-        {/* Mode tabs */}
-        <div className="flex gap-1 p-1 bg-white/4 rounded-xl mb-3">
-          {[
-            { id: 'react', label: '⚡ Agent Run', desc: 'Live ReAct loop' },
-            { id: 'decompose', label: '🗂️ Goal Plan', desc: 'Task decomposition' },
-          ].map(m => (
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          {Object.entries(MODE_INFO).map(([id, info]) => (
             <button
-              key={m.id}
-              onClick={() => { setMode(m.id); setSteps([]); setTasks([]); setFinalAnswer(null) }}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
-                mode === m.id
-                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                  : 'text-slate-500 hover:text-slate-300'
+              key={id}
+              type="button"
+              onClick={() => {
+                setMode(id)
+                resetOutput()
+              }}
+              className={`rounded-xl border p-3 text-left transition-all ${
+                mode === id ? 'border-blue-400/35 bg-blue-500/12 text-blue-200' : 'border-white/8 bg-white/4 text-slate-400 hover:border-white/16 hover:bg-white/6'
               }`}
             >
-              {m.label}
-              <span className="block text-[10px] opacity-60 font-normal">{m.desc}</span>
+              <p className="text-sm font-semibold">{info.title}</p>
+              <p className="mt-1 text-xs leading-snug opacity-70">{info.subtitle}</p>
             </button>
           ))}
         </div>
 
-        {/* Goal input */}
         <div className="relative">
           <textarea
             value={goal}
-            onChange={e => setGoal(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
+            onChange={event => setGoal(event.target.value)}
+            onKeyDown={event => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault()
                 mode === 'react' ? runReact() : runDecompose()
               }
             }}
-            placeholder="Enter your goal… e.g. 'Find the best conference room for 12 people under ₹2000/hr'"
-            rows={2}
+            placeholder={modeInfo.placeholder}
+            rows={3}
             disabled={isRunning}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 resize-none focus:outline-none focus:border-blue-500/40 disabled:opacity-50"
+            className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-3 py-3 pr-28 text-sm text-white placeholder-slate-600 focus:border-blue-500/40 focus:outline-none disabled:opacity-50"
           />
           <button
-            onClick={() => mode === 'react' ? runReact() : runDecompose()}
+            type="button"
+            onClick={() => (mode === 'react' ? runReact() : runDecompose())}
             disabled={!goal.trim() || isRunning}
-            className={`absolute bottom-2 right-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              goal.trim() && !isRunning
-                ? 'bg-blue-500 hover:bg-blue-400 text-white'
-                : 'bg-white/5 text-slate-600 cursor-not-allowed'
+            className={`absolute bottom-2 right-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+              goal.trim() && !isRunning ? 'bg-blue-500 text-white hover:bg-blue-400' : 'cursor-not-allowed bg-white/5 text-slate-600'
             }`}
           >
-            {isRunning ? '⏳' : mode === 'react' ? '▶ Run' : '📋 Plan'}
+            {isRunning ? 'Working...' : modeInfo.button}
           </button>
-        </div>
-
-        {/* Example goals */}
-        <div className="flex gap-1.5 mt-2 overflow-x-auto pb-0.5 scrollbar-none">
-          {EXAMPLE_GOALS.slice(0, 3).map((eg, i) => (
-            <button
-              key={i}
-              onClick={() => setGoal(eg)}
-              disabled={isRunning}
-              className="flex-shrink-0 text-xs bg-white/4 hover:bg-white/8 border border-white/8 text-slate-500 hover:text-slate-300 px-2.5 py-1 rounded-full transition-all whitespace-nowrap"
-            >
-              {eg.length > 45 ? eg.slice(0, 45) + '…' : eg}
-            </button>
-          ))}
         </div>
       </div>
 
-      {/* ── Available Tools strip ───────────────────────────────────────────── */}
-      {tools.length > 0 && !hasOutput && (
-        <div className="flex-shrink-0 px-4 py-3 border-b border-white/6">
-          <p className="text-xs text-slate-600 mb-2 uppercase tracking-wider">Available Tools</p>
-          <div className="flex flex-wrap gap-1.5">
-            {tools.map(t => (
-              <div
-                key={t.name}
-                className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border ${TOOL_META[t.name]?.bg || 'bg-white/5 border-white/10'}`}
-              >
-                <span>{t.icon}</span>
-                <span className={TOOL_META[t.name]?.color || 'text-slate-400'}>{t.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Output area ────────────────────────────────────────────────────── */}
-      <div ref={outputRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-0">
-
-        {/* Empty state */}
+      <div ref={outputRef} className="flex-1 overflow-y-auto px-4 py-3">
         {!hasOutput && !isRunning && (
-          <div className="flex flex-col items-center justify-center h-full text-center py-12">
-            <div className="text-4xl mb-3">🤖</div>
-            <p className="text-slate-400 font-medium mb-1">Nova Agent ready</p>
-            <p className="text-slate-600 text-sm max-w-xs">
-              {mode === 'react'
-                ? 'Enter a goal and watch the agent reason, call tools, and build the answer step by step.'
-                : 'Enter a complex goal and the agent will break it into an ordered execution plan.'}
-            </p>
+          <div className="space-y-3">
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/8 p-3">
+              <p className="text-sm font-semibold text-blue-300">{modeInfo.title}</p>
+              <p className="mt-1 text-sm leading-relaxed text-slate-400">{modeInfo.subtitle}</p>
+            </div>
+
+            <div className="grid gap-2">
+              {EXAMPLES[mode].map(([title, exampleGoal]) => (
+                <ExampleButton key={exampleGoal} title={title} goal={exampleGoal} onPick={setGoal} />
+              ))}
+            </div>
+
+            {tools.length > 0 && (
+              <div className="rounded-xl border border-white/8 bg-white/3 p-3">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Backend tools Nova can use</p>
+                <div className="flex flex-wrap gap-2">
+                  {tools.map(tool => <ToolPill key={tool.name} name={tool.name} />)}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Loading spinner */}
         {isRunning && steps.length === 0 && tasks.length === 0 && (
-          <div className="flex items-center gap-3 py-4 px-3 bg-blue-500/8 border border-blue-500/20 rounded-xl">
-            <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+          <div className="flex items-center gap-3 rounded-xl border border-blue-500/20 bg-blue-500/8 px-3 py-4">
+            <div className="h-5 w-5 flex-shrink-0 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
             <div>
-              <p className="text-sm text-blue-300 font-medium">Agent initialising…</p>
-              <p className="text-xs text-slate-500">Loading Ollama llama3</p>
+              <p className="text-sm font-medium text-blue-300">Nova is starting...</p>
+              <p className="text-xs text-slate-500">Connecting to Ollama and backend tools</p>
             </div>
           </div>
         )}
 
-        {/* ReAct steps */}
-        {mode === 'react' && steps.map((step, i) => (
-          <StepCard key={i} step={step} index={i} />
-        ))}
+        {mode === 'react' && steps.map((step, index) => <StepCard key={`${step.type}-${index}`} step={step} />)}
 
-        {/* Goal decomposition task tree */}
         {mode === 'decompose' && tasks.length > 0 && (
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-xs text-slate-500 uppercase tracking-wider">Execution Plan</span>
-              <span className="text-xs bg-white/5 border border-white/8 px-2 py-0.5 rounded-full text-slate-500">
-                {tasks.length} tasks
-              </span>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Goal plan</span>
+              <span className="rounded-full border border-white/8 bg-white/5 px-2 py-0.5 text-xs text-slate-500">{tasks.length} tasks</span>
             </div>
             <TaskTree tasks={tasks} activeId={activeTaskId} />
           </div>
         )}
 
-        {/* Thinking indicator (while steps are streaming) */}
         {running && steps.length > 0 && !finalAnswer && (
           <div className="flex items-center gap-2 px-3 py-2 text-xs text-slate-500">
             <div className="flex gap-0.5">
-              {[0, 1, 2].map(i => (
-                <div
-                  key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce"
-                  style={{ animationDelay: `${i * 0.15}s` }}
-                />
+              {[0, 1, 2].map(index => (
+                <div key={index} className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-400" style={{ animationDelay: `${index * 0.15}s` }} />
               ))}
             </div>
-            Agent thinking…
+            Nova is choosing the next tool...
           </div>
         )}
 
-        {/* Final answer highlight */}
         {finalAnswer && mode === 'decompose' && (
-          <div className="mt-3 p-3 bg-emerald-500/8 border border-emerald-500/30 rounded-xl">
-            <p className="text-xs text-emerald-400 font-bold uppercase tracking-wider mb-1">Plan Ready</p>
-            <p className="text-sm text-emerald-300 leading-relaxed whitespace-pre-wrap">{finalAnswer}</p>
+          <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/8 p-3">
+            <p className="mb-1 text-xs font-bold uppercase tracking-wider text-emerald-400">Plan ready</p>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-emerald-300">{finalAnswer}</p>
           </div>
         )}
 
-        {/* Stop button while running */}
+        {shareResult && <SharePanel goal={goal} result={shareResult} />}
+
         {isRunning && (
-          <button
-            onClick={stop}
-            className="w-full mt-2 py-1.5 text-xs text-red-400 border border-red-500/20 rounded-xl hover:bg-red-500/8 transition-all"
-          >
-            ⏹ Stop agent
+          <button type="button" onClick={stop} className="mt-3 w-full rounded-xl border border-red-500/20 py-2 text-xs text-red-400 transition-all hover:bg-red-500/8">
+            Stop agent
           </button>
         )}
-
       </div>
 
-      {/* ── Stats footer ───────────────────────────────────────────────────── */}
       {steps.length > 0 && (
-        <div className="flex-shrink-0 border-t border-white/6 px-4 py-2 flex items-center gap-4 text-xs text-slate-600">
-          <span>💭 {steps.filter(s => s.type === 'thought').length} thoughts</span>
-          <span>🔧 {steps.filter(s => s.type === 'action').length} tool calls</span>
-          <span>📊 {steps.filter(s => s.type === 'observation').length} observations</span>
-          {finalAnswer && <span className="text-emerald-500 ml-auto">✅ Completed</span>}
+        <div className="flex flex-shrink-0 items-center gap-4 border-t border-white/6 px-4 py-2 text-xs text-slate-600">
+          <span>{steps.filter(step => step.type === 'thought').length} thoughts</span>
+          <span>{steps.filter(step => step.type === 'action').length} tools</span>
+          <span>{steps.filter(step => step.type === 'observation').length} results</span>
+          {finalAnswer && <span className="ml-auto text-emerald-500">Completed</span>}
         </div>
       )}
     </div>

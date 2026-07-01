@@ -81,25 +81,25 @@ export default function App() {
 
               {/* Agent info panel — right */}
               <div className="w-full lg:flex-1 flex flex-col glass-card rounded-2xl p-5" style={{ height: '720px', minHeight: '720px', maxHeight: '720px', overflow: 'auto' }}>
-                <h3 className="text-white font-semibold mb-1">🤖 Agentic AI Features</h3>
-                <p className="text-slate-500 text-xs mb-4">Nova uses a ReAct loop to reason and act autonomously</p>
+                <h3 className="text-white font-semibold mb-1">🤖 Understand Nova Agent</h3>
+                <p className="text-slate-500 text-xs mb-4">Think of Nova as an operations assistant that can plan, search the backend, compare options, calculate prices, and share results.</p>
 
                 {[{
-                  icon: '⚡', title: 'ReAct Loop', color: 'text-blue-300',
-                  desc: 'Reason → Act → Observe → Repeat. Nova thinks step by step, calls tools, and builds the answer autonomously.',
-                  tags: ['Thought', 'Action', 'Observation'],
+                  icon: '⚡', title: 'Run Agent', color: 'text-blue-300',
+                  desc: 'Use this when you want Nova to solve the request now. It thinks, chooses a tool, reads the database, and returns a final recommendation.',
+                  tags: ['Think', 'Use tool', 'Answer'],
                 },{
-                  icon: '🔧', title: 'Multi-Tool Agent', color: 'text-amber-300',
-                  desc: '5 callable tools: search spaces, get details, calculate price, compare options, check availability.',
-                  tags: ['search_spaces', 'calculate_price', 'compare_spaces'],
+                  icon: '🗂️', title: 'Goal Plan', color: 'text-violet-300',
+                  desc: 'Use this when the request is big. Nova breaks it into smaller backend tasks before you run it live.',
+                  tags: ['Break down', 'Order tasks', 'Ready to run'],
                 },{
-                  icon: '🗂️', title: 'Goal Decomposition', color: 'text-violet-300',
-                  desc: 'Complex goals are broken into ordered, executable subtasks automatically.',
-                  tags: ['Planning', 'Subtasks', 'Execution Tree'],
+                  icon: '📤', title: 'Email + WhatsApp', color: 'text-emerald-300',
+                  desc: 'After Nova produces a result, you can email it from the backend or open a WhatsApp share message instantly.',
+                  tags: ['Email result', 'WhatsApp share', 'Client follow-up'],
                 },{
-                  icon: '🩹', title: 'Self-Healing RAG', color: 'text-emerald-300',
-                  desc: 'When RAG returns low-confidence answers, Nova auto-reformulates the query and retries.',
-                  tags: ['Auto-retry', 'Query rewrite', 'Confidence check'],
+                  icon: '🗄️', title: 'Bigger Backend Database', color: 'text-amber-300',
+                  desc: 'The demo now has 41 workspaces across 13 Bangalore areas, including Bellandur, Sarjapur, Bannerghatta Road, and Yelahanka.',
+                  tags: ['41 spaces', '13 areas', 'More realistic demo'],
                 }].map(f => (
                   <div key={f.title} className="mb-4 p-3 rounded-xl bg-white/3 border border-white/6">
                     <div className="flex items-center gap-2 mb-1">
@@ -116,11 +116,11 @@ export default function App() {
                 ))}
 
                 <div className="mt-2 p-3 rounded-xl bg-violet-500/8 border border-violet-500/20">
-                  <p className="text-xs text-violet-300 font-semibold mb-1">💡 Try these goals:</p>
+                  <p className="text-xs text-violet-300 font-semibold mb-1">💡 Best demo examples:</p>
                   {[
+                    'Find the best Bellandur room for 12 people under ₹2000/hr',
+                    'Plan a team offsite for 25 people with price and availability checks',
                     'Compare Innovation Hub and Sprint Room for a tech team of 10',
-                    'Find cheapest event space for 100 people in Bangalore',
-                    'Book a quiet room for 4 people in Whitefield for 3 hours',
                   ].map(g => (
                     <p key={g} className="text-xs text-slate-500 mt-1">• {g}</p>
                   ))}
@@ -133,9 +133,9 @@ export default function App() {
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-600">
               <span className="text-slate-500">Try:</span>
               {[
-                '"Conference room for 15 people tomorrow"',
-                '"Event spaces under ₹20,000/hr"',
-                '"Book Innovation Hub Friday 2pm"',
+                '"Bellandur conference room for 12 people"',
+                '"Plan an offsite for 25 people"',
+                '"Event space near Bannerghatta under ₹10,000/hr"',
               ].map(q => (
                 <span key={q} className="bg-white/3 border border-white/6 px-2.5 py-1 rounded-full text-slate-500">
                   {q}

@@ -400,12 +400,44 @@ def agent_tools():
     """List available agent tools with descriptions."""
     return {
         "tools": [
-            {"name": "search_spaces", "description": "Find workspace options by location, capacity, type, or max price", "icon": "🔍"},
-            {"name": "get_space_details", "description": "Get full amenities, pricing tiers, and description for a space", "icon": "📋"},
-            {"name": "calculate_price", "description": "Calculate total booking cost for a space and duration", "icon": "💰"},
-            {"name": "compare_spaces", "description": "Side-by-side comparison of multiple spaces", "icon": "⚖️"},
-            {"name": "check_availability", "description": "Verify if a space is free on a given date and time", "icon": "📅"},
+            {"name": "search_spaces",      "description": "Find workspace options by location, capacity, type, or max price", "icon": "🔍"},
+            {"name": "get_space_details",  "description": "Get full amenities, pricing tiers, and description for a space",   "icon": "📋"},
+            {"name": "calculate_price",    "description": "Calculate total booking cost for a space and duration",            "icon": "💰"},
+            {"name": "compare_spaces",     "description": "Side-by-side comparison of multiple spaces",                       "icon": "⚖️"},
+            {"name": "check_availability", "description": "Verify if a space is free on a given date and time",               "icon": "📅"},
         ]
+    }
+
+
+class NotifyRequest(BaseModel):
+    email: str
+    goal: str
+    result: str
+
+
+@app.post("/api/notify")
+def notify_result(req: NotifyRequest):
+    """
+    Send agent search result to user via email.
+    Also returns a WhatsApp share URL.
+    """
+    import re as _re
+    if not _re.match(r"[\w.+-]+@[\w-]+\.[\w.]+", req.email):
+        raise HTTPException(status_code=400, detail="Invalid email address")
+
+    from email_service import send_agent_result
+    sent = send_agent_result(req.email, req.goal, req.result)
+
+    # Build WhatsApp share link (no API key needed — uses wa.me deep link)
+    wa_text = f"🤖 Aurbis Nova Agent Result\n\nGoal: {req.goal}\n\nAnswer:\n{req.result}\n\nBook at: https://aurbis.in"
+    import urllib.parse
+    wa_url = f"https://wa.me/?text={urllib.parse.quote(wa_text)}"
+
+    return {
+        "email_sent": sent,
+        "email_to": req.email,
+        "whatsapp_url": wa_url,
+        "message": "Email sent successfully!" if sent else "Email skipped (no SMTP config). Use WhatsApp link to share."
     }
 
 

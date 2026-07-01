@@ -252,6 +252,27 @@ class DemoRAG:
                 "suggested_spaces": [s["id"] for s in spaces]
             }
 
+        # Location-specific: expanded Bangalore hubs
+        expanded_hubs = [
+            (["bannerghatta", "bannerghatta road"], "Bannerghatta Road", ["BAN-001", "BAN-002"], "Bannerghatta Road | Event-friendly, quiet offices, valet options"),
+            (["sarjapur", "sarjapur road"], "Sarjapur Road", ["SAR-001", "SAR-002", "SAR-003"], "Sarjapur Road | Startup and training-focused hub"),
+            (["bellandur"], "Bellandur", ["BEL-001", "BEL-002", "BEL-003"], "Bellandur | Lake-view suites, agile rooms, large events"),
+            (["yelahanka"], "Yelahanka", ["YEL-001", "YEL-002", "YEL-003"], "Yelahanka | Quiet, affordable, north Bangalore hub"),
+        ]
+        for keywords, hub_name, ids, address in expanded_hubs:
+            if self._match(msg, keywords):
+                spaces = self._spaces_for_ids(ids)
+                lines = [
+                    f"• **{s['name']}** — {s['type_label']}, {s['capacity']} pax, ₹{s['pricing']['hourly']:,}/hr"
+                    for s in spaces
+                ]
+                return {
+                    "answer": f"**{hub_name} Hub** has {len(spaces)} spaces available:\n\n" + "\n".join(lines) + f"\n\nAddress: {address}\n\nTell me your team size, date, and budget — I can shortlist the best option or book it for you.",
+                    "sources": [f"{hub_name} Hub — Space Directory"],
+                    "mode": "demo",
+                    "suggested_spaces": [s["id"] for s in spaces]
+                }
+
         # Amenities
         if self._match(msg, ["amenities", "facilities", "wifi", "parking", "food", "catering", "coffee", "projector", "av", "video"]):
             return {
@@ -273,17 +294,17 @@ class DemoRAG:
         # Greeting / start
         if self._match(msg, ["hi", "hello", "hey", "good morning", "good afternoon", "good evening", "start", "help"]) or len(msg.split()) <= 3:
             return {
-                "answer": "👋 Hi! I'm **Nova**, your Aurbis AI Workspace Assistant.\n\nI can help you:\n🔍 **Find** the perfect space (meeting rooms, offices, event venues, hot desks)\n💰 **Compare** prices and amenities across 5 Bangalore locations\n📅 **Book** spaces instantly through natural conversation\n❓ **Answer** any questions about Aurbis\n\nWhat are you looking for today? Try asking:\n- *\"I need a conference room for 10 people in Koramangala tomorrow at 2pm\"*\n- *\"What's your cheapest event space?\"*\n- *\"Book the Sprint Room in Whitefield for Friday 3pm\"*",
+                "answer": "👋 Hi! I'm **Nova**, your Aurbis AI Workspace Assistant.\n\nI can help you:\n🔍 **Find** the perfect space (meeting rooms, offices, event venues, hot desks)\n💰 **Compare** prices and amenities across 13 Bangalore areas\n📅 **Book** spaces instantly through natural conversation\n❓ **Answer** any questions about Aurbis\n\nWhat are you looking for today? Try asking:\n- *\"I need a conference room for 10 people in Bellandur tomorrow at 2pm\"*\n- *\"What's your cheapest event space near Bannerghatta?\"*\n- *\"Find a Sarjapur training room for 30 people\"*",
                 "sources": [],
                 "mode": "demo",
-                "suggested_spaces": ["KOR-001", "WHI-002", "MGR-001"]
+                "suggested_spaces": ["KOR-001", "BEL-002", "SAR-003"]
             }
 
         # Private office
         if self._match(msg, ["private office", "office space", "dedicated", "team suite", "for my team"]):
-            spaces = self._spaces_for_ids(["MGR-001", "WHI-003", "WHI-004"])
+            spaces = self._spaces_for_ids(["MGR-001", "WHI-003", "BEL-001", "BAN-002", "YEL-001"])
             return {
-                "answer": "Aurbis has great **private office** options:\n\n🏙️ **Executive Suite, MG Road** — ₹3,000/hr | 6 pax | City view, butler service, VIP setup\n\n🔇 **Focus Pod, Whitefield** — ₹600/hr | 4 pax | Private, standing desks, dedicated internet\n\n🔬 **Innovation Lab, Whitefield** — ₹2,500/hr | 25 pax | Full team suite with maker space\n\nFor **monthly private offices**, prices start at ₹30,000/month. Would you like to explore monthly plans or hourly bookings?",
+                "answer": "Aurbis has great **private office** options across premium and budget ranges:\n\n🏙️ **Executive Suite, MG Road** — ₹3,000/hr | 6 pax | City view, butler service, VIP setup\n\n🌊 **Lake View Suite, Bellandur** — ₹2,500/hr | 8 pax | Premium lake view, executive feel\n\n🔇 **Focus Pod, Whitefield** — ₹600/hr | 4 pax | Private, quiet, dedicated internet\n\n🌿 **Serenity Suite, Yelahanka** — ₹550/hr | 5 pax | Peaceful garden-view focus space\n\nFor **monthly private offices**, prices start at ₹30,000/month. Want premium, quiet, or budget-friendly?",
                 "sources": ["Private Offices — All Hubs", "Monthly Plans"],
                 "mode": "demo",
                 "suggested_spaces": [s["id"] for s in spaces]
@@ -300,9 +321,9 @@ class DemoRAG:
             }
 
         # Default — general availability / what do you have
-        spaces = self._spaces_for_ids(["KOR-001", "WHI-002", "IND-001", "MGR-001"])
+        spaces = self._spaces_for_ids(["KOR-001", "WHI-002", "IND-001", "MGR-001", "BEL-002", "SAR-001", "BAN-001", "YEL-002"])
         return {
-            "answer": f"I'd love to help you find the right Aurbis workspace! We have **18 spaces** across 5 premium Bangalore locations:\n\n📍 **Koramangala** (Flagship) — Conference rooms, team suites, event spaces, hot desks\n📍 **Whitefield** — Tech-focused training rooms, agile conference rooms, innovation lab\n📍 **MG Road** — Executive suites, grand event hall (300 pax), strategy rooms\n📍 **Indiranagar** — Creative spaces, podcast studio, community hot desks\n📍 **HSR Layout** — Secure meeting rooms, community hall, startup accelerator space\n\nCould you tell me more about:\n1. **What type of space** you need (meeting, office, event, hot desk)?\n2. **How many people**?\n3. **Which area of Bangalore**?\n4. **When** do you need it?",
+            "answer": f"I'd love to help you find the right Aurbis workspace! We have **{len(self.SPACES_DATA)} spaces** across **13 Bangalore areas**:\n\n📍 **Koramangala, Whitefield, MG Road, Indiranagar, HSR Layout** — core premium hubs\n📍 **Electronic City, Hebbal, Jayanagar, Marathahalli** — expanded business hubs\n📍 **Bannerghatta Road, Sarjapur Road, Bellandur, Yelahanka** — new demo database additions\n\nCould you tell me more about:\n1. **What type of space** you need (meeting, office, event, hot desk)?\n2. **How many people**?\n3. **Which area of Bangalore**?\n4. **When** do you need it?",
             "sources": ["Aurbis Space Directory — All Locations"],
             "mode": "demo",
             "suggested_spaces": [s["id"] for s in spaces]
@@ -371,6 +392,14 @@ class AurbisRAG:
             (['mg road', 'mgroad', 'mg rd', 'brigade road', 'brigade', 'mg'], 'MG Road'),
             (['indiranagar', 'indira nagar', 'indiranager', 'indranagar', 'indiranagr'], 'Indiranagar'),
             (['hsr layout', 'hsr', 'h.s.r'], 'HSR Layout'),
+            (['electronic city', 'electroniccity', 'e city', 'ecity'], 'Electronic City'),
+            (['hebbal'], 'Hebbal'),
+            (['jayanagar', 'jaya nagar'], 'Jayanagar'),
+            (['marathahalli', 'marathalli'], 'Marathahalli'),
+            (['bannerghatta road', 'bannerghatta'], 'Bannerghatta Road'),
+            (['sarjapur road', 'sarjapur'], 'Sarjapur Road'),
+            (['bellandur'], 'Bellandur'),
+            (['yelahanka'], 'Yelahanka'),
         ]
         msg_lower = msg.lower()
         for patterns, val in loc_patterns:
@@ -792,15 +821,22 @@ class AurbisRAG:
             ollama_model = os.getenv("OLLAMA_MODEL", "llama3")
             print(f"🦙 Setting up RAG with Ollama ({ollama_model})...")
 
-            docs = self._load_docs()
             embeddings = OllamaEmbeddings(model=ollama_model)
 
             CHROMA_DIR.mkdir(exist_ok=True)
-            vectorstore = Chroma.from_documents(
-                docs, embeddings,
-                persist_directory=str(CHROMA_DIR),
-                collection_name="aurbis_knowledge_ollama"
-            )
+            if (CHROMA_DIR / "chroma.sqlite3").exists():
+                vectorstore = Chroma(
+                    persist_directory=str(CHROMA_DIR),
+                    embedding_function=embeddings,
+                    collection_name="aurbis_knowledge_ollama"
+                )
+            else:
+                docs = self._load_docs()
+                vectorstore = Chroma.from_documents(
+                    docs, embeddings,
+                    persist_directory=str(CHROMA_DIR),
+                    collection_name="aurbis_knowledge_ollama"
+                )
 
             self.retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
             self.llm = OllamaLLM(model=ollama_model, temperature=0.3)
