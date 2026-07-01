@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from rag_engine import AurbisRAG
+from agent_engine import AurbisAgent
 
 # ──────────────────────────────────────────────
 # App Setup
@@ -132,9 +133,14 @@ async def chat_stream(message: str, session_id: str = None):
             # Stage 1 — always emitted immediately
             yield f"event: stage\ndata: {json.dumps({'stage': 'searching', 'label': 'Searching knowledge base...', 'icon': '🔍'})}\n\n"
 
-            # Run RAG synchronously in a thread so we don't block the event loop
+            # Run RAG with self-healing in a thread so we don't block the event loop
             loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(None, rag.chat, msg, sid)
+            result = await loop.run_in_executor(None, rag.chat_with_healing, msg, sid)
+
+            # Emit heal event if RAG auto-reformulated the query
+            if result.get("healed"):
+                yield f"event: heal\ndata: {json.dumps({'original': result['original_query'], 'reformulated': result['reformulated_query']})}\n\n"
+                await asyncio.sleep(0.05)
 
             # Stage 2 — retrieval
             sources = result.get("sources", [])
@@ -327,6 +333,80 @@ def get_space(space_id: str):
 def get_locations():
     """Get all Aurbis locations."""
     return {"locations": SPACES_DATA.get("locations", [])}
+
+
+# ── Agent endpoints ──────────────────────────────────────────────────────────
+
+class AgentGoalRequest(BaseModel):
+    goal: str
+    session_id: Optional[str] = None
+
+
+@app.get("/api/agent/stream")
+async def agent_stream(goal: str, session_id: str = None):
+    """
+    ReAct agent — SSE streaming.
+    Emits: step events (thought | action | observation | final | error) + done.
+    """
+    if not goal or not goal.strip():
+        raise HTTPException(status_code=400, detail="Goal cannot be empty")
+
+    async def generate():
+        agent = AurbisAgent()
+        step_queue = agent.run_stream_queued(goal.strip())
+        loop = asyncio.get_event_loop()
+
+        while True:
+            try:
+                step = await loop.run_in_executor(None, step_queue.get, True, 120)
+                if step is None:
+                    break
+                yield f"event: step\ndata: {json.dumps(step)}\n\n"
+            except Exception as e:
+                yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
+                break
+
+        yield f"event: done\ndata: {{}}\n\n"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
+
+
+@app.post("/api/agent/decompose")
+async def agent_decompose(req: AgentGoalRequest):
+    """
+    Goal decomposition — breaks a complex goal into ordered subtasks.
+    Returns a JSON list of task dicts.
+    """
+    if not req.goal or not req.goal.strip():
+        raise HTTPException(status_code=400, detail="Goal cannot be empty")
+
+    loop = asyncio.get_event_loop()
+    agent = AurbisAgent()
+    tasks = await loop.run_in_executor(None, agent.decompose_goal, req.goal.strip())
+    return {"goal": req.goal, "tasks": tasks, "total": len(tasks)}
+
+
+@app.get("/api/agent/tools")
+def agent_tools():
+    """List available agent tools with descriptions."""
+    return {
+        "tools": [
+            {"name": "search_spaces", "description": "Find workspace options by location, capacity, type, or max price", "icon": "🔍"},
+            {"name": "get_space_details", "description": "Get full amenities, pricing tiers, and description for a space", "icon": "📋"},
+            {"name": "calculate_price", "description": "Calculate total booking cost for a space and duration", "icon": "💰"},
+            {"name": "compare_spaces", "description": "Side-by-side comparison of multiple spaces", "icon": "⚖️"},
+            {"name": "check_availability", "description": "Verify if a space is free on a given date and time", "icon": "📅"},
+        ]
+    }
 
 
 @app.post("/api/book", response_model=BookingResponse)

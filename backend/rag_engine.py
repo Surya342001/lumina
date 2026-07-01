@@ -916,3 +916,56 @@ class AurbisRAG:
             "mode": "ollama",
             "suggested_spaces": []
         }
+
+    # ── Self-Healing RAG ───────────────────────────────────────────────────────
+    _LOW_CONF = [
+        "i'm not sure", "i don't have", "i cannot find", "no information",
+        "not available in my", "i don't know", "cannot answer", "not certain",
+        "no specific information", "based on my training", "i'm unable to",
+        "unfortunately i don", "i lack the", "beyond my knowledge",
+    ]
+
+    def _is_low_confidence(self, answer: str) -> bool:
+        a = answer.lower()
+        return any(sig in a for sig in self._LOW_CONF)
+
+    def _reformulate_query(self, query: str) -> Optional[str]:
+        """Use the LLM to rewrite the query for better RAG retrieval."""
+        if not self.llm:
+            return None
+        try:
+            prompt = (
+                "Rewrite this workspace booking query to be more specific and "
+                "retrieval-friendly. Output ONLY the rewritten query — no quotes, "
+                "no explanation.\n\n"
+                f"Original: {query}\nRewritten:"
+            )
+            raw = self.llm.invoke(prompt)
+            result = (raw.content if hasattr(raw, "content") else str(raw)).strip().strip('"\'')
+            if result and result.lower() != query.lower() and 5 < len(result) < 300:
+                return result
+        except Exception:
+            pass
+        return None
+
+    def chat_with_healing(self, message: str, session_id: str) -> dict:
+        """
+        Self-Healing RAG wrapper.
+        1. Runs normal RAG chat.
+        2. If response shows low confidence, auto-reformulates the query.
+        3. Retries with the improved query.
+        4. Returns healed=True + both queries so the UI can show the heal event.
+        """
+        result = self.chat(message, session_id)
+        answer = result.get("answer", "")
+
+        if self._is_low_confidence(answer):
+            reformulated = self._reformulate_query(message)
+            if reformulated:
+                healed_result = self.chat(reformulated, session_id)
+                healed_result["healed"] = True
+                healed_result["original_query"] = message
+                healed_result["reformulated_query"] = reformulated
+                return healed_result
+
+        return result
