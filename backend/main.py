@@ -427,17 +427,23 @@ def notify_result(req: NotifyRequest):
 
     from email_service import send_agent_result
     sent = send_agent_result(req.email, req.goal, req.result)
+    receipt_id = f"AUR-RCPT-{uuid.uuid4().hex[:8].upper()}"
 
     # Build WhatsApp share link (no API key needed — uses wa.me deep link)
     wa_text = f"🤖 Aurbis Nova Agent Result\n\nGoal: {req.goal}\n\nAnswer:\n{req.result}\n\nBook at: https://aurbis.in"
     import urllib.parse
+    from datetime import datetime, timezone
     wa_url = f"https://wa.me/?text={urllib.parse.quote(wa_text)}"
 
     return {
         "email_sent": sent,
         "email_to": req.email,
         "whatsapp_url": wa_url,
-        "message": "Email sent successfully!" if sent else "Email skipped (no SMTP config). Use WhatsApp link to share."
+        "notification_id": receipt_id,
+        "processed_at": datetime.now(timezone.utc).isoformat(),
+        "delivery_status": "DELIVERED" if sent else "SHARE_READY",
+        "channel": "email",
+        "message": "Delivery successful. Receipt generated." if sent else "Email skipped (no SMTP config). WhatsApp share is ready."
     }
 
 

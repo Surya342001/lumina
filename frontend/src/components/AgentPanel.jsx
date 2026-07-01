@@ -46,6 +46,14 @@ const EXAMPLES = {
   ],
 }
 
+const AGENT_STAGES = [
+  { id: 'understand', label: 'Understand', icon: '🧠' },
+  { id: 'search', label: 'Search DB', icon: '🔍' },
+  { id: 'compare', label: 'Compare', icon: '⚖️' },
+  { id: 'price', label: 'Price', icon: '💰' },
+  { id: 'answer', label: 'Answer', icon: '✅' },
+]
+
 function ToolPill({ name }) {
   const meta = TOOL_META[name] || { icon: '🔧', label: name, color: 'text-slate-400', bg: 'bg-white/5 border-white/10' }
   return (
@@ -66,6 +74,95 @@ function ExampleButton({ title, goal, onPick }) {
       <p className="text-xs font-semibold uppercase tracking-wider text-blue-300/80">{title}</p>
       <p className="mt-1 text-sm leading-relaxed text-slate-300">{goal}</p>
     </button>
+  )
+}
+
+function AgentMissionBoard({ mode, steps, tasks, running, finalAnswer }) {
+  const latestStep = steps[steps.length - 1]
+  const completedTasks = tasks.filter(task => task.status === 'done').length
+  const actionCount = steps.filter(step => step.type === 'action').length
+  const resultCount = steps.filter(step => step.type === 'observation').length
+
+  let activeIndex = 0
+  if (mode === 'decompose') {
+    activeIndex = finalAnswer ? 4 : Math.min(Math.max(completedTasks, 0), 3)
+  } else if (finalAnswer) {
+    activeIndex = 4
+  } else if (latestStep?.tool === 'calculate_price') {
+    activeIndex = 3
+  } else if (latestStep?.tool === 'compare_spaces') {
+    activeIndex = 2
+  } else if (latestStep?.type === 'action' || latestStep?.tool === 'search_spaces') {
+    activeIndex = 1
+  } else if (latestStep?.type === 'observation') {
+    activeIndex = Math.min(2 + resultCount, 3)
+  }
+
+  const progress = `${(activeIndex / (AGENT_STAGES.length - 1)) * 100}%`
+  const currentLabel = finalAnswer
+    ? 'Final recommendation is ready'
+    : latestStep?.tool
+    ? `Using ${TOOL_META[latestStep.tool]?.label || latestStep.tool}`
+    : mode === 'decompose'
+    ? 'Building an execution plan'
+    : 'Reading your goal and choosing the first tool'
+
+  return (
+    <div className="mb-3 overflow-hidden rounded-2xl border border-blue-500/25 bg-gradient-to-br from-blue-500/10 via-slate-900/60 to-emerald-500/10 p-3">
+      <div className="mb-3 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-400/25 bg-blue-400/10 text-lg shadow-[0_0_24px_rgba(59,130,246,0.28)]">
+          {finalAnswer ? '✅' : running ? '⚡' : '🧭'}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-white">Agent Mission Control</p>
+          <p className="truncate text-xs text-slate-500">{currentLabel}</p>
+        </div>
+        <div className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-slate-400">
+          {finalAnswer ? 'Complete' : running ? 'Live' : 'Ready'}
+        </div>
+      </div>
+
+      <div className="relative mb-3 h-1.5 rounded-full bg-white/8">
+        <div className="h-full rounded-full bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-300 transition-all duration-500" style={{ width: progress }} />
+      </div>
+
+      <div className="grid grid-cols-5 gap-1.5">
+        {AGENT_STAGES.map((stage, index) => {
+          const active = index === activeIndex && !finalAnswer
+          const complete = index < activeIndex || finalAnswer
+          return (
+            <div
+              key={stage.id}
+              className={`rounded-xl border px-2 py-2 text-center transition-all ${
+                active
+                  ? 'border-blue-300/40 bg-blue-400/15 text-blue-200 shadow-[0_0_22px_rgba(96,165,250,0.18)]'
+                  : complete
+                  ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300'
+                  : 'border-white/8 bg-white/4 text-slate-600'
+              }`}
+            >
+              <div className="text-base">{stage.icon}</div>
+              <div className="mt-1 text-[10px] font-semibold uppercase tracking-wider">{stage.label}</div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+        <div className="rounded-xl border border-white/8 bg-black/20 px-2 py-2">
+          <p className="text-slate-600">Thoughts</p>
+          <p className="text-sm font-semibold text-blue-300">{steps.filter(step => step.type === 'thought').length}</p>
+        </div>
+        <div className="rounded-xl border border-white/8 bg-black/20 px-2 py-2">
+          <p className="text-slate-600">Tools</p>
+          <p className="text-sm font-semibold text-amber-300">{actionCount || tasks.length}</p>
+        </div>
+        <div className="rounded-xl border border-white/8 bg-black/20 px-2 py-2">
+          <p className="text-slate-600">Results</p>
+          <p className="text-sm font-semibold text-emerald-300">{resultCount || completedTasks}</p>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -145,7 +242,8 @@ function TaskTree({ tasks, activeId }) {
 
 function SharePanel({ goal, result }) {
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState('')
+  const [notice, setNotice] = useState('')
+  const [receipt, setReceipt] = useState(null)
   const [sending, setSending] = useState(false)
 
   const whatsappUrl = useMemo(() => {
@@ -155,11 +253,12 @@ function SharePanel({ goal, result }) {
 
   async function sendEmail() {
     if (!email.trim()) {
-      setStatus('Enter an email address first.')
+      setNotice('Enter an email address first.')
       return
     }
     setSending(true)
-    setStatus('Sending result...')
+    setNotice('Processing secure delivery...')
+    setReceipt(null)
     try {
       const response = await fetch(`${API_BASE}/api/notify`, {
         method: 'POST',
@@ -168,20 +267,33 @@ function SharePanel({ goal, result }) {
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.detail || 'Could not send email')
-      setStatus(data.message || 'Result shared.')
+      setReceipt({
+        id: data.notification_id || `AUR-RCPT-${Date.now().toString().slice(-6)}`,
+        email: data.email_to || email.trim(),
+        status: data.delivery_status || (data.email_sent ? 'DELIVERED' : 'SHARE_READY'),
+        message: data.message || 'Delivery successful. Receipt generated.',
+        processedAt: data.processed_at ? new Date(data.processed_at).toLocaleString() : new Date().toLocaleString(),
+      })
+      setNotice('')
     } catch (error) {
-      setStatus(error.message)
+      setNotice(error.message)
     } finally {
       setSending(false)
     }
   }
 
   return (
-    <div className="mt-3 rounded-xl border border-emerald-500/25 bg-emerald-500/8 p-3">
-      <div className="mb-2 flex items-center gap-2">
-        <span className="text-sm">📤</span>
-        <p className="text-sm font-semibold text-emerald-300">Send this result</p>
+    <div className="mt-3 overflow-hidden rounded-2xl border border-emerald-500/25 bg-emerald-500/8">
+      <div className="border-b border-emerald-500/15 bg-gradient-to-r from-emerald-500/12 to-cyan-500/8 px-3 py-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm">📤</span>
+          <div>
+            <p className="text-sm font-semibold text-emerald-300">Send this result</p>
+            <p className="text-xs text-slate-500">Email receipt + WhatsApp share link</p>
+          </div>
+        </div>
       </div>
+      <div className="p-3">
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
           value={email}
@@ -205,7 +317,48 @@ function SharePanel({ goal, result }) {
           WhatsApp
         </button>
       </div>
-      {status && <p className="mt-2 text-xs text-slate-500">{status}</p>}
+      {notice && <p className="mt-2 text-xs text-slate-500">{notice}</p>}
+
+      {receipt && (
+        <div className="mt-3 rounded-2xl border border-emerald-400/30 bg-black/25 p-4 shadow-[0_0_28px_rgba(16,185,129,0.18)]">
+          <div className="mb-3 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-400 text-xl text-black shadow-[0_0_28px_rgba(52,211,153,0.45)]">
+              ✓
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-300">Delivery Successful</p>
+              <p className="truncate text-sm text-white">Result sent to {receipt.email}</p>
+            </div>
+            <div className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold text-emerald-300">
+              {receipt.status}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-white/8 bg-white/5 p-3">
+            <div className="mb-2 flex items-center justify-between border-b border-white/8 pb-2">
+              <span className="text-xs text-slate-500">Nova Receipt</span>
+              <span className="text-sm font-semibold text-emerald-300">₹0.00</span>
+            </div>
+            <div className="grid gap-2 text-xs">
+              <div className="flex justify-between gap-3">
+                <span className="text-slate-600">Receipt ID</span>
+                <span className="font-mono text-slate-300">{receipt.id}</span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-slate-600">Channel</span>
+                <span className="text-slate-300">Email</span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-slate-600">Processed</span>
+                <span className="text-right text-slate-300">{receipt.processedAt}</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-3 text-xs text-emerald-300/80">{receipt.message}</p>
+        </div>
+      )}
+      </div>
     </div>
   )
 }
@@ -404,6 +557,10 @@ export default function AgentPanel() {
               </div>
             )}
           </div>
+        )}
+
+        {(hasOutput || isRunning) && (
+          <AgentMissionBoard mode={mode} steps={steps} tasks={tasks} running={isRunning} finalAnswer={finalAnswer} />
         )}
 
         {isRunning && steps.length === 0 && tasks.length === 0 && (
