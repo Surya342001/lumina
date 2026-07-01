@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Send, Bot, User, Zap, ChevronDown, ChevronUp, Sparkles, RefreshCw, CheckCircle, Calendar, MapPin, Clock, QrCode, X, Mic, MicOff, Search, Database, Cpu } from 'lucide-react'
@@ -90,6 +90,151 @@ function buildUserProfile(messages) {
     }
   }
   return { locs, types, queryCount }
+}
+
+// ── Chain of Thought helpers ─────────────────────────────────────────────────
+
+/** Build reasoning steps shown in the CoT panel for each AI response. */
+function buildReasoning(snapshotEntities, meta) {
+  const detected = snapshotEntities.length > 0
+    ? snapshotEntities.map(e => `${e.icon} ${e.label}`).join(' · ')
+    : 'General inquiry — no specific entities detected'
+  const srcCount = meta.sources?.length || 0
+  const spaceCount = meta.suggested_spaces?.length || 0
+  let strategy = 'Direct conversational response'
+  if (meta.booking_confirmed)   strategy = 'Booking confirmation flow completed ✓'
+  else if (spaceCount > 0)      strategy = `Matched ${spaceCount} space${spaceCount !== 1 ? 's' : ''} → ranked by relevance & pricing`
+  else if (srcCount > 0)        strategy = 'Retrieved context → synthesized answer with citations'
+  return [
+    { label: 'Entity Detection',    detail: detected },
+    { label: 'Knowledge Retrieval', detail: srcCount > 0 ? `${srcCount} chunk${srcCount !== 1 ? 's' : ''} from RAG knowledge base` : 'Using conversational context' },
+    { label: 'Response Strategy',   detail: strategy },
+    { label: 'AI Engine',           detail: meta.mode === 'ollama' ? 'Ollama llama3 · LangChain RAG · ChromaDB' : meta.mode === 'openai' ? 'GPT-4 · LangChain RAG · ChromaDB' : 'Demo Mode' },
+  ]
+}
+
+/** Context-aware predictive completions as user types. */
+function getPredictiveCompletions(input, messages) {
+  const t = input.toLowerCase().trim()
+  if (t.length < 3) return []
+  const lastBot = messages.filter(m => m.role === 'assistant' && m.content).slice(-1)[0]
+  const botCtx  = (lastBot?.content || '').toLowerCase()
+  const loc = ['Koramangala','Whitefield','Indiranagar','HSR Layout','MG Road']
+    .find(l => botCtx.includes(l.toLowerCase()))
+  if (/^book/.test(t)) return [
+    loc ? `Book a conference room in ${loc} for tomorrow 3pm` : 'Book a conference room for 10 people',
+    'Book a hot desk for today',
+    loc ? `Book the Sprint Room in ${loc}` : 'Book Innovation Hub in Koramangala',
+  ].filter(c => c.toLowerCase() !== t)
+  if (/^conf|^meet/.test(t)) return [
+    `Conference room for 12 people in ${loc || 'Koramangala'}`,
+    'Conference room pricing and availability',
+    'Meeting room with video conferencing',
+  ]
+  if (/^how much|^price|^cost|^rate/.test(t)) return [
+    'How much is a hot desk per day',
+    loc ? `How much for a conference room in ${loc}` : 'How much is Innovation Hub per hour',
+    'What are the monthly membership plans',
+  ]
+  if (/^show|^what|^which/.test(t)) return [
+    loc ? `Show all spaces in ${loc}` : 'Show all conference rooms in Koramangala',
+    'What event spaces can fit 100 people',
+    'Which space is cheapest for a team of 5',
+  ]
+  if (/^comp/.test(t)) return [
+    'Compare Innovation Hub vs The Boardroom',
+    'Compare hot desk vs private office pricing',
+    'Compare Koramangala and Whitefield spaces',
+  ]
+  return []
+}
+
+// ── Chain of Thought Panel ────────────────────────────────────────────────────
+function CoTPanel({ reasoning }) {
+  const [open, setOpen] = useState(false)
+  if (!reasoning?.length) return null
+  return (
+    <div style={{ marginTop: 6, marginLeft: 12 }}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: open ? '#60A5FA' : '#4B5563', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+      >
+        <span>💭</span>
+        <span>{open ? 'Hide reasoning' : 'View reasoning'}</span>
+        {open ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+      </button>
+      {open && (
+        <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {reasoning.map((step, i) => (
+            <div key={i} style={{ display: 'flex', gap: 8, fontSize: 11, alignItems: 'flex-start' }}>
+              <span style={{ flexShrink: 0, width: 18, height: 18, borderRadius: '50%', background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: '#60A5FA', fontWeight: 700, marginTop: 1 }}>
+                {i + 1}
+              </span>
+              <div>
+                <span style={{ color: '#6B7280', fontWeight: 600 }}>{step.label}:</span>
+                <span style={{ color: '#4B5563', marginLeft: 4 }}>{step.detail}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── AI Session Analytics Panel ────────────────────────────────────────────────
+function AIInsightsPanel({ messages }) {
+  const stats = useMemo(() => {
+    const botMsgs    = messages.filter(m => m.role === 'assistant' && m.id !== 1)
+    const userMsgs   = messages.filter(m => m.role === 'user')
+    const sourcesUsed = botMsgs.reduce((acc, m) => acc + (m.sources?.length || 0), 0)
+    const topics = { Booking: 0, Exploring: 0, Pricing: 0, Amenities: 0 }
+    for (const m of userMsgs) {
+      const c = m.content.toLowerCase()
+      if (/book|reserve/.test(c))                             topics.Booking++
+      else if (/price|cost|rate|how much|cheap/.test(c))     topics.Pricing++
+      else if (/amenities|wifi|parking|facilities|coffee/.test(c)) topics.Amenities++
+      else                                                   topics.Exploring++
+    }
+    return { botCount: botMsgs.length, userCount: userMsgs.length, sourcesUsed, topics }
+  }, [messages])
+
+  const COLORS = { Booking: '#10B981', Exploring: '#3B82F6', Pricing: '#F59E0B', Amenities: '#8B5CF6' }
+  const total  = stats.userCount || 1
+
+  return (
+    <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.18)', animation: 'slideDown 0.22s ease-out' }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#60A5FA', marginBottom: 10 }}>📊 AI Session Analytics</div>
+      {/* Stat cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6, marginBottom: 10 }}>
+        {[['Queries', stats.userCount], ['Responses', stats.botCount], ['Sources', stats.sourcesUsed]].map(([label, value]) => (
+          <div key={label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 8, padding: '7px 8px', textAlign: 'center' }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#E5E7EB' }}>{value}</div>
+            <div style={{ fontSize: 9, color: '#4B5563', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</div>
+          </div>
+        ))}
+      </div>
+      {/* Intent distribution */}
+      {stats.userCount > 0 ? (
+        <div>
+          <div style={{ fontSize: 10, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 7 }}>Query Distribution</div>
+          {Object.entries(stats.topics).filter(([,v]) => v > 0).map(([topic, count]) => (
+            <div key={topic} style={{ marginBottom: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, marginBottom: 3 }}>
+                <span style={{ color: '#9CA3AF' }}>{topic}</span>
+                <span style={{ color: '#6B7280' }}>{Math.round(count/total*100)}%</span>
+              </div>
+              <div style={{ height: 3, background: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'hidden' }}>
+                <div style={{ width: `${count/total*100}%`, height: '100%', background: COLORS[topic], borderRadius: 2, transition: 'width 0.8s ease' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', fontSize: 11, color: '#374151', padding: '4px 0' }}>Start chatting to see analytics</div>
+      )}
+    </div>
+  )
 }
 
 // ── Booking Success Modal ─────────────────────────────────────────────────────
@@ -462,6 +607,11 @@ function Message({ msg }) {
               : '🤖 Demo Mode'}
           </span>
         )}
+
+        {/* Chain of Thought — expandable reasoning panel */}
+        {!isUser && !isStreaming && msg.reasoning && (
+          <CoTPanel reasoning={msg.reasoning} />
+        )}
       </div>
     </div>
   )
@@ -529,6 +679,8 @@ export default function ChatWidget({ onSpacesHighlight }) {
   // AI features state
   const [entities, setEntities] = useState([])
   const [intentScore, setIntentScore] = useState(0)
+  const [completions, setCompletions] = useState([])
+  const [showInsights, setShowInsights] = useState(false)
   const messagesContainerRef = useRef(null)
   const inputRef = useRef(null)
   const streamCleanupRef = useRef(null)
@@ -551,11 +703,21 @@ export default function ChatWidget({ onSpacesHighlight }) {
     return () => clearTimeout(t)
   }, [input])
 
+  // Predictive autocomplete — debounced 260ms
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setCompletions(getPredictiveCompletions(input, messages))
+    }, 260)
+    return () => clearTimeout(t)
+  }, [input, messages])
+
   const send = useCallback((text) => {
     const msg = (text || input).trim()
     if (!msg || loading) return
 
+    const snapshotEntities = [...entities]   // capture NLP entities at send time for CoT
     setInput('')
+    setCompletions([])
     const asstId = Date.now() + 1
     setMessages(prev => [
       ...prev,
@@ -576,8 +738,9 @@ export default function ChatWidget({ onSpacesHighlight }) {
         ))
       },
       onDone: meta => {
+        const reasoning = buildReasoning(snapshotEntities, meta)
         setMessages(prev => prev.map(m =>
-          m.id === asstId ? { ...m, streaming: false, ...meta } : m
+          m.id === asstId ? { ...m, streaming: false, reasoning, ...meta } : m
         ))
         if (meta.booking_confirmed && meta.booking_details) {
           setCelebrationDetails(meta.booking_details)
@@ -663,10 +826,22 @@ export default function ChatWidget({ onSpacesHighlight }) {
             </p>
           </div>
         </div>
-        <button onClick={reset} className="p-2 rounded-lg hover:bg-white/8 text-slate-500 hover:text-slate-300 transition-colors" title="Reset conversation">
-          <RefreshCw size={15} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setShowInsights(v => !v)}
+            title="AI Session Analytics"
+            className={`p-2 rounded-lg transition-colors text-sm ${showInsights ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/8 text-slate-500 hover:text-slate-300'}`}
+          >
+            📊
+          </button>
+          <button onClick={reset} className="p-2 rounded-lg hover:bg-white/8 text-slate-500 hover:text-slate-300 transition-colors" title="Reset conversation">
+            <RefreshCw size={15} />
+          </button>
+        </div>
       </div>
+
+      {/* AI Session Analytics Dashboard */}
+      {showInsights && <AIInsightsPanel messages={messages} />}
 
       {/* AI Persona Memory — "Nova knows you" bar */}
       {userProfile.queryCount >= 2 && (userProfile.locs.length > 0 || userProfile.types.length > 0) && (
@@ -718,6 +893,22 @@ export default function ChatWidget({ onSpacesHighlight }) {
 
       {/* Input */}
       <div className="px-4 pb-4">
+
+        {/* Predictive autocomplete chips */}
+        {completions.length > 0 && !loading && (
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 7, alignItems: 'center' }}>
+            <span style={{ fontSize: 10, color: '#374151' }}>💡</span>
+            {completions.map((c, i) => (
+              <button
+                key={i}
+                onClick={() => { setInput(c); setCompletions([]); inputRef.current?.focus() }}
+                style={{ fontSize: 11, background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.22)', borderRadius: 14, padding: '2px 10px', color: '#93C5FD', cursor: 'pointer' }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Intent confidence bar */}
         {intentScore > 0 && (
