@@ -237,10 +237,63 @@ function AIInsightsPanel({ messages }) {
   )
 }
 
+let bookingAudioContext = null
+
+function getBookingAudioContext() {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext
+  if (!AudioCtx) return null
+  if (!bookingAudioContext || bookingAudioContext.state === 'closed') {
+    bookingAudioContext = new AudioCtx()
+  }
+  return bookingAudioContext
+}
+
+function primeBookingSuccessSound() {
+  try {
+    const ctx = getBookingAudioContext()
+    if (!ctx) return
+    ctx.resume?.()
+  } catch {
+    // Audio unlock is best-effort.
+  }
+}
+
+function playBookingSuccessSound() {
+  try {
+    const ctx = getBookingAudioContext()
+    if (!ctx) return
+    ctx.resume?.()
+    const master = ctx.createGain()
+    master.gain.setValueAtTime(0.0001, ctx.currentTime)
+    master.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02)
+    master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.95)
+    master.connect(ctx.destination)
+
+    const notes = [523.25, 659.25, 783.99, 1046.5]
+    notes.forEach((freq, index) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      const start = ctx.currentTime + index * 0.09
+      osc.type = index === notes.length - 1 ? 'triangle' : 'sine'
+      osc.frequency.setValueAtTime(freq, start)
+      gain.gain.setValueAtTime(0.0001, start)
+      gain.gain.exponentialRampToValueAtTime(0.22, start + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.28)
+      osc.connect(gain)
+      gain.connect(master)
+      osc.start(start)
+      osc.stop(start + 0.32)
+    })
+  } catch {
+    // Browsers can block audio in some cases; the visual receipt still appears.
+  }
+}
+
 // ── Booking Success Modal ─────────────────────────────────────────────────────
 function BookingSuccessModal({ details, onClose }) {
   const [show, setShow] = useState(false)
   useEffect(() => {
+    playBookingSuccessSound()
     const t = setTimeout(() => setShow(true), 30)
     return () => clearTimeout(t)
   }, [])
@@ -267,6 +320,10 @@ function BookingSuccessModal({ details, onClose }) {
           0%   { stroke-dashoffset: 100; }
           100% { stroke-dashoffset: 0; }
         }
+        @keyframes receiptGlow {
+          0%, 100% { box-shadow: 0 0 28px rgba(16,185,129,0.16); }
+          50% { box-shadow: 0 0 46px rgba(16,185,129,0.34); }
+        }
       `}</style>
 
       {/* Card */}
@@ -281,6 +338,7 @@ function BookingSuccessModal({ details, onClose }) {
           borderRadius: 20,
           boxShadow: '0 24px 80px rgba(0,0,0,0.6), 0 0 40px rgba(16,185,129,0.08)',
           overflow: 'hidden',
+          animation: show ? 'receiptGlow 1.6s ease-in-out infinite' : 'none',
         }}>
           {/* Green top accent */}
           <div style={{ height: 3, background: 'linear-gradient(90deg,#10B981,#34D399,#6EE7B7)' }} />
@@ -316,9 +374,9 @@ function BookingSuccessModal({ details, onClose }) {
             </div>
 
             <div style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
-              Booking Confirmed
+              Booking Confirmed Successfully
             </div>
-            <div style={{ fontSize: 13, color: '#6B7280' }}>Your workspace is reserved</div>
+            <div style={{ fontSize: 13, color: '#6B7280' }}>Your workspace is reserved and receipt is ready</div>
             <div style={{
               marginTop: 12, display: 'inline-block',
               background: 'rgba(16,185,129,0.08)',
@@ -355,19 +413,58 @@ function BookingSuccessModal({ details, onClose }) {
             ))}
           </div>
 
+          <div style={{
+            margin: '0 20px 14px',
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px dashed rgba(255,255,255,0.12)',
+            borderRadius: 12,
+            padding: '10px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}>
+            <div>
+              <div style={{ fontSize: 10, color: '#4B5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Rate</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#E5E7EB' }}>{details.price || 'Confirmed'}</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 10, color: '#4B5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Status</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: '#34D399' }}>CONFIRMED</div>
+            </div>
+          </div>
+
           {/* Email badge */}
           {details.email && (
             <div style={{
               margin: '0 20px 14px',
-              background: 'rgba(16,185,129,0.06)',
-              border: '1px solid rgba(16,185,129,0.2)',
+              background: details.email_sent === false ? 'rgba(245,158,11,0.08)' : 'rgba(16,185,129,0.06)',
+              border: details.email_sent === false ? '1px solid rgba(245,158,11,0.25)' : '1px solid rgba(16,185,129,0.2)',
               borderRadius: 12, padding: '10px 14px',
               display: 'flex', alignItems: 'center', gap: 10,
             }}>
               <span style={{ fontSize: 18 }}>📧</span>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#6EE7B7' }}>Confirmation email sent!</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: details.email_sent === false ? '#FBBF24' : '#6EE7B7' }}>
+                  {details.email_sent === false ? 'Email delivery needs SMTP config' : 'Confirmation email sent!'}
+                </div>
                 <div style={{ fontSize: 11, color: '#6B7280' }}>{details.email}</div>
+              </div>
+            </div>
+          )}
+
+          {!details.email && (
+            <div style={{
+              margin: '0 20px 14px',
+              background: 'rgba(59,130,246,0.07)',
+              border: '1px solid rgba(59,130,246,0.18)',
+              borderRadius: 12, padding: '10px 14px',
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <span style={{ fontSize: 18 }}>ℹ️</span>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#93C5FD' }}>Email was skipped</div>
+                <div style={{ fontSize: 11, color: '#6B7280' }}>Add an email during booking to receive the confirmation note.</div>
               </div>
             </div>
           )}
@@ -464,7 +561,11 @@ function BookingConfirmCard({ details }) {
             </div>
             <div>
               <p className="text-white text-xs font-semibold">QR Access Pass</p>
-              <p className="text-slate-400 text-xs">Sent to your email · Show at Aurbis entrance</p>
+              <p className="text-slate-400 text-xs">
+                {details.email && details.email_sent !== false
+                  ? 'Sent to your email · Show at Aurbis entrance'
+                  : 'Generated in chat · Show at Aurbis entrance'}
+              </p>
             </div>
             <div className="ml-auto text-right flex-shrink-0">
               <p className="text-teal-400 text-xs font-semibold">{details.price}</p>
@@ -714,6 +815,7 @@ export default function ChatWidget({ onSpacesHighlight }) {
   const send = useCallback((text) => {
     const msg = (text || input).trim()
     if (!msg || loading) return
+    primeBookingSuccessSound()
 
     const snapshotEntities = [...entities]   // capture NLP entities at send time for CoT
     setInput('')

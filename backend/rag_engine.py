@@ -96,8 +96,13 @@ SYSTEM_PROMPT = """You are Nova, the AI workspace assistant for Aurbis — a pre
 Your role is to help users:
 1. Find the perfect workspace (conference rooms, private offices, hot desks, event spaces, training rooms)
 2. Get pricing and availability information
-3. Complete workspace bookings through natural conversation
+3. Collect booking details through natural conversation
 4. Answer questions about Aurbis policies, amenities, and locations
+
+Important booking rule:
+- Never say a space is booked, confirmed, reserved, locked in, or all set from RAG context alone.
+- A real booking is confirmed only by the backend booking workflow after the user says yes on the final summary.
+- If a user asks to book but the workflow is missing details, ask for the next missing detail instead of claiming confirmation.
 
 Personality: Warm, professional, efficient. You speak like a knowledgeable concierge who genuinely wants to find the best solution.
 
@@ -673,12 +678,14 @@ class AurbisRAG:
                     "time": time_val,
                     "price": price,
                     "email": user_email,
+                    "email_sent": False,
                 }
 
                 # Send confirmation email if we have one
                 email_note = ""
                 if user_email:
                     sent = send_booking_confirmation(user_email, booking_details)
+                    booking_details["email_sent"] = sent
                     email_note = f"\n\n📧 Confirmation email sent to **{user_email}**" if sent else f"\n\n⚠️ Couldn't send email to {user_email} — check Gmail config in .env"
                 # Remember this booking for re-booking flows
                 self.last_bookings[session_id] = booking_details
@@ -937,6 +944,12 @@ class AurbisRAG:
                 # Call LLM
                 raw = self.llm.invoke(prompt_text)
                 answer = raw.content if hasattr(raw, "content") else str(raw)
+                if self._looks_like_false_booking_confirmation(answer):
+                    answer = (
+                        "I can help book that, but I have not confirmed it yet. "
+                        "To complete a real booking, please tell me the guest name, space/location, date, time, and email. "
+                        "Once I show the final summary, reply **yes** and I will send the confirmation email."
+                    )
 
                 history.append({"role": "user", "content": message})
                 history.append({"role": "assistant", "content": answer})
@@ -962,6 +975,20 @@ class AurbisRAG:
             "mode": "ollama",
             "suggested_spaces": []
         }
+
+    def _looks_like_false_booking_confirmation(self, answer: str) -> bool:
+        """Block RAG-only answers from pretending that a booking happened."""
+        text = answer.lower()
+        confirmation_terms = [
+            'is booked', 'has been booked', 'booking is confirmed', 'booking confirmed',
+            'confirmed the booking', 'reserved for you', 'all set', 'locked in',
+            'your booking details', 'recap, your booking', 'booking id:'
+        ]
+        if any(term in text for term in confirmation_terms if term not in {'all set', 'locked in'}):
+            return True
+        return any(term in text for term in {'all set', 'locked in'}) and any(
+            signal in text for signal in {'booking', 'booked', 'reserved', 'workspace', 'space'}
+        )
 
     # ── Self-Healing RAG ───────────────────────────────────────────────────────
     _LOW_CONF = [
