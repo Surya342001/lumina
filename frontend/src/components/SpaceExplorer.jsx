@@ -145,7 +145,7 @@ export default function SpaceExplorer({ highlightedIds = [], onBook }) {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={aiMode ? 'e.g. "quiet place for deep work"…' : 'Search spaces or locations...'}
-          className="w-full bg-white/4 border border-white/8 focus:border-aurbis-blue/40 rounded-lg pl-9 pr-20 py-2 text-xs text-white placeholder-slate-600 outline-none transition-colors"
+          className="w-full bg-[#1a2236] border border-white/10 focus:border-aurbis-blue/40 rounded-lg pl-9 pr-20 py-2 text-xs text-white placeholder-slate-500 outline-none transition-colors autofill:bg-[#1a2236] [&:-webkit-autofill]:bg-[#1a2236] [&:-webkit-autofill]:shadow-[0_0_0_99px_#1a2236_inset] [&:-webkit-autofill]:[text-fill-color:#fff]"
         />
         {/* AI semantic search toggle */}
         <button
