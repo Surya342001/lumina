@@ -7,6 +7,7 @@ import BookingModal from './components/BookingModal'
 import HowItWorks from './components/HowItWorks'
 import StatsSection from './components/StatsSection'
 import AgentPanel from './components/AgentPanel'
+import AIShowcase from './components/AIShowcase'
 
 export default function App() {
   const [highlightedIds, setHighlightedIds] = useState([])
@@ -147,6 +148,12 @@ export default function App() {
 
         {/* How it works */}
         <HowItWorks />
+
+        {/* AI Features Showcase */}
+        <AIShowcase onSwitchMode={(mode) => {
+          setAppMode(mode)
+          document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })
+        }} />
 
         {/* Stats */}
         <StatsSection />
