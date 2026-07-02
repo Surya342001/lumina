@@ -10,7 +10,7 @@ const ANIM_CSS = `
 @keyframes neonPulse { 0%,100% { opacity:0.6; } 50% { opacity:1; } }
 @keyframes scanRight { from { left:-40%; } to { left:120%; } }
 @keyframes electricGlow { 0%,100% { box-shadow:0 0 6px rgba(59,130,246,0.4); } 50% { box-shadow:0 0 22px rgba(59,130,246,0.9); } }
-@keyframes purpleGlow { 0%,100% { box-shadow:0 0 6px rgba(139,92,246,0.4); } 50% { box-shadow:0 0 22px rgba(139,92,246,0.9); } }
+@keyframes tealGlow { 0%,100% { box-shadow:0 0 6px rgba(20,184,166,0.4); } 50% { box-shadow:0 0 22px rgba(20,184,166,0.9); } }
 @keyframes stampIn { 0% { opacity:0; transform:scale(1.5) rotate(-12deg); } 70% { transform:scale(0.95) rotate(2deg); } 100% { opacity:1; transform:scale(1) rotate(0); } }
 @keyframes drawConnector { from { opacity:0; transform:scaleY(0); transform-origin:top; } to { opacity:1; transform:scaleY(1); } }
 `
@@ -52,7 +52,7 @@ const DECOMPOSE_EXAMPLES = [
   { tag: 'CLIENT MEETING', goal: 'Create a step-by-step plan to choose and book a premium client meeting room in MG Road' },
 ]
 
-const BLUEPRINT_BG = 'repeating-linear-gradient(0deg,rgba(139,92,246,0.045) 0px,rgba(139,92,246,0.045) 1px,transparent 1px,transparent 22px),repeating-linear-gradient(90deg,rgba(139,92,246,0.045) 0px,rgba(139,92,246,0.045) 1px,transparent 1px,transparent 22px)'
+const BLUEPRINT_BG = 'repeating-linear-gradient(0deg,rgba(20,184,166,0.045) 0px,rgba(20,184,166,0.045) 1px,transparent 1px,transparent 22px),repeating-linear-gradient(90deg,rgba(20,184,166,0.045) 0px,rgba(20,184,166,0.045) 1px,transparent 1px,transparent 22px)'
 
 // ─── Shared ──────────────────────────────────────────────────────────────
 function ToolPill({ name }) {
@@ -141,27 +141,27 @@ function BlueprintBoard({ tasks, running, finalAnswer }) {
   const done  = tasks.filter(t => t.status === 'done').length
   const total = tasks.length
   return (
-    <div className="mb-3 overflow-hidden rounded-2xl border border-purple-500/25 bg-[#060310]"
-         style={{ backgroundImage: BLUEPRINT_BG, boxShadow: '0 0 32px rgba(139,92,246,0.12)' }}>
-      <div className="flex items-center gap-3 border-b border-purple-500/15 bg-gradient-to-r from-purple-700/16 to-indigo-500/8 px-3 py-2.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-purple-400/35 bg-purple-500/18 text-base"
-             style={{ animation: running ? 'purpleGlow 2s ease-in-out infinite' : 'none' }}>📐</div>
+    <div className="mb-3 overflow-hidden rounded-2xl border border-teal-500/25 bg-[#060310]"
+         style={{ backgroundImage: BLUEPRINT_BG, boxShadow: '0 0 32px rgba(20,184,166,0.12)' }}>
+      <div className="flex items-center gap-3 border-b border-teal-500/15 bg-gradient-to-r from-teal-700/16 to-indigo-500/8 px-3 py-2.5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-teal-400/35 bg-teal-500/18 text-base"
+             style={{ animation: running ? 'tealGlow 2s ease-in-out infinite' : 'none' }}>📐</div>
         <div className="flex-1">
-          <p className="text-xs font-bold uppercase tracking-wider text-purple-200">Goal Blueprint</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-teal-200">Goal Blueprint</p>
           <p className="text-xs text-slate-500">
             {finalAnswer ? `${total} tasks drafted` : running ? `Building plan... ${done}/${total || '?'}` : 'Awaiting your goal'}
           </p>
         </div>
         <div className="flex items-center gap-1.5">
           {running && <span className="h-2 w-2 rounded-full bg-amber-400" style={{ animation: 'liveBlink 1.2s ease-in-out infinite' }} />}
-          <span className="rounded-full border border-purple-400/25 bg-purple-500/12 px-2 py-0.5 text-xs font-bold text-purple-300">
+          <span className="rounded-full border border-teal-400/25 bg-teal-500/12 px-2 py-0.5 text-xs font-bold text-teal-300">
             {finalAnswer ? 'DRAFTED' : running ? 'PLANNING' : 'READY'}
           </span>
         </div>
       </div>
       <div className="px-3 py-2.5">
         <div className="relative mb-2.5 h-1 overflow-hidden rounded-full bg-white/6">
-          <div className="h-full rounded-full bg-gradient-to-r from-purple-500 via-indigo-400 to-amber-400 transition-all duration-700"
+          <div className="h-full rounded-full bg-gradient-to-r from-teal-500 via-indigo-400 to-amber-400 transition-all duration-700"
                style={{ width: total ? `${(done / total) * 100}%` : '0%' }} />
         </div>
         {tasks.length > 0 && (
@@ -170,8 +170,8 @@ function BlueprintBoard({ tasks, running, finalAnswer }) {
           </div>
         )}
       </div>
-      <div className="grid grid-cols-3 divide-x divide-purple-500/10 border-t border-purple-500/10 text-center text-xs">
-        <div className="px-2 py-2"><p className="text-slate-600">Steps</p><p className="font-bold text-purple-300">{total || '—'}</p></div>
+      <div className="grid grid-cols-3 divide-x divide-teal-500/10 border-t border-teal-500/10 text-center text-xs">
+        <div className="px-2 py-2"><p className="text-slate-600">Steps</p><p className="font-bold text-teal-300">{total || '—'}</p></div>
         <div className="px-2 py-2"><p className="text-slate-600">Drafted</p><p className="font-bold text-amber-300">{done}</p></div>
         <div className="px-2 py-2"><p className="text-slate-600">Pending</p><p className="font-bold text-indigo-300">{total - done || '—'}</p></div>
       </div>
@@ -231,26 +231,26 @@ function TaskTree({ tasks, activeId }) {
                    style={{
                      background: isDone
                        ? 'linear-gradient(to bottom,rgba(52,211,153,0.4),rgba(52,211,153,0.1))'
-                       : 'linear-gradient(to bottom,rgba(139,92,246,0.3),rgba(139,92,246,0.05))',
+                       : 'linear-gradient(to bottom,rgba(20,184,166,0.3),rgba(20,184,166,0.05))',
                      animation: `drawConnector 0.4s ease-out ${i * 0.07 + 0.3}s both`,
                    }} />
             )}
             <div className={`relative z-10 mt-3 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-all ${
-              isActive ? 'border-purple-400/60 bg-purple-500/30 text-purple-200' :
+              isActive ? 'border-teal-400/60 bg-teal-500/30 text-teal-200' :
               isDone   ? 'border-emerald-400/40 bg-emerald-500/20 text-emerald-300' :
                          'border-white/10 bg-white/4 text-slate-500'
-            }`} style={isActive ? { animation: 'purpleGlow 1.6s ease-in-out infinite' } : {}}>
+            }`} style={isActive ? { animation: 'tealGlow 1.6s ease-in-out infinite' } : {}}>
               {isDone ? '✓' : task.id}
             </div>
             <div className={`mb-2.5 flex-1 rounded-xl border px-3 py-2.5 transition-all ${
-              isActive ? 'border-purple-500/45 bg-purple-500/10' :
+              isActive ? 'border-teal-500/45 bg-teal-500/10' :
               isDone   ? 'border-emerald-500/25 bg-emerald-500/6' :
                          'border-white/6 bg-white/3'
             }`}>
-              <p className={`text-sm leading-snug ${isActive ? 'text-purple-100' : isDone ? 'text-slate-300' : 'text-slate-500'}`}>{task.task}</p>
+              <p className={`text-sm leading-snug ${isActive ? 'text-teal-100' : isDone ? 'text-slate-300' : 'text-slate-500'}`}>{task.task}</p>
               <div className="mt-2 flex items-center gap-2">
                 <ToolPill name={task.tool} />
-                {isActive && <span className="animate-pulse text-xs text-purple-400">drafting...</span>}
+                {isActive && <span className="animate-pulse text-xs text-teal-400">drafting...</span>}
                 {isDone   && <span className="text-xs text-emerald-500/80">added ✓</span>}
               </div>
             </div>
@@ -305,37 +305,37 @@ function AgentIdleScreen({ tools, onPick }) {
 function PlanIdleScreen({ tools, onPick }) {
   return (
     <div className="space-y-3">
-      <div className="relative overflow-hidden rounded-2xl border border-purple-500/20 bg-[#06030f] p-4"
-           style={{ backgroundImage: BLUEPRINT_BG, boxShadow: '0 0 24px rgba(139,92,246,0.08)' }}>
+      <div className="relative overflow-hidden rounded-2xl border border-teal-500/20 bg-[#06030f] p-4"
+           style={{ backgroundImage: BLUEPRINT_BG, boxShadow: '0 0 24px rgba(20,184,166,0.08)' }}>
         <div className="mb-2 flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-amber-400" style={{ animation: 'neonPulse 2.5s ease-in-out infinite' }} />
-          <span className="text-xs font-bold uppercase tracking-wider text-purple-300">Strategic Blueprint</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-teal-300">Strategic Blueprint</span>
         </div>
         <p className="text-sm font-semibold text-white">Design before you execute</p>
         <p className="mt-1 text-xs leading-relaxed text-slate-400">
           Nova breaks your goal into a numbered execution plan — each step mapped to a specific tool. Review the full task graph before running anything live.
         </p>
-        <div className="mt-3 flex items-center gap-2 text-xs text-purple-500/40 font-mono">
+        <div className="mt-3 flex items-center gap-2 text-xs text-teal-500/40 font-mono">
           <span>AURBIS_NOVA / BLUEPRINT</span><span className="ml-auto">v2.1</span>
         </div>
       </div>
       <div className="space-y-2">
         {DECOMPOSE_EXAMPLES.map(({ tag, goal }, i) => (
           <button key={goal} type="button" onClick={() => onPick(goal)}
-                  className="group relative w-full overflow-hidden rounded-xl border border-purple-500/14 bg-[#06030f] p-3 text-left transition-all hover:border-purple-400/35 hover:bg-purple-500/6"
-                  style={{ backgroundImage: 'repeating-linear-gradient(90deg,rgba(139,92,246,0.03) 0px,rgba(139,92,246,0.03) 1px,transparent 1px,transparent 22px)' }}>
+                  className="group relative w-full overflow-hidden rounded-xl border border-teal-500/14 bg-[#06030f] p-3 text-left transition-all hover:border-teal-400/35 hover:bg-teal-500/6"
+                  style={{ backgroundImage: 'repeating-linear-gradient(90deg,rgba(20,184,166,0.03) 0px,rgba(20,184,166,0.03) 1px,transparent 1px,transparent 22px)' }}>
             <div className="mb-1 flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded border border-purple-500/30 bg-purple-500/15 text-xs font-bold text-purple-300">{i + 1}</span>
-              <span className="text-xs font-bold uppercase tracking-wider text-purple-400/75">{tag}</span>
+              <span className="flex h-5 w-5 items-center justify-center rounded border border-teal-500/30 bg-teal-500/15 text-xs font-bold text-teal-300">{i + 1}</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-teal-400/75">{tag}</span>
             </div>
             <p className="text-sm leading-relaxed text-slate-300 transition-colors group-hover:text-white">{goal}</p>
           </button>
         ))}
       </div>
       {tools.length > 0 && (
-        <div className="rounded-xl border border-purple-500/12 bg-purple-900/5 p-3"
-             style={{ backgroundImage: 'repeating-linear-gradient(0deg,rgba(139,92,246,0.03) 0px,rgba(139,92,246,0.03) 1px,transparent 1px,transparent 22px)' }}>
-          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-purple-500/60">Tools available in the plan</p>
+        <div className="rounded-xl border border-teal-500/12 bg-teal-900/5 p-3"
+             style={{ backgroundImage: 'repeating-linear-gradient(0deg,rgba(20,184,166,0.03) 0px,rgba(20,184,166,0.03) 1px,transparent 1px,transparent 22px)' }}>
+          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-teal-500/60">Tools available in the plan</p>
           <div className="flex flex-wrap gap-2">{tools.map(t => <ToolPill key={t.name} name={t.name} />)}</div>
         </div>
       )}
@@ -521,7 +521,7 @@ export default function AgentPanel() {
   const hasOutput   = steps.length > 0 || tasks.length > 0
   const shareResult = mode === 'react' ? finalAnswer : (finalAnswer ? buildPlanResult() : null)
   const isReact     = mode === 'react'
-  const borderColor = isReact ? 'rgba(59,130,246,0.22)' : 'rgba(139,92,246,0.22)'
+  const borderColor = isReact ? 'rgba(59,130,246,0.22)' : 'rgba(20,184,166,0.22)'
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-[#0f1117]"
@@ -530,11 +530,11 @@ export default function AgentPanel() {
 
       {/* ── Header ── */}
       <div className="flex-shrink-0 px-4 pb-3 pt-4"
-           style={{ borderBottom: `1px solid ${isReact ? 'rgba(59,130,246,0.1)' : 'rgba(139,92,246,0.1)'}` }}>
+           style={{ borderBottom: `1px solid ${isReact ? 'rgba(59,130,246,0.1)' : 'rgba(20,184,166,0.1)'}` }}>
 
         <div className="mb-3 flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg text-sm transition-all duration-500"
-               style={{ background: isReact ? 'linear-gradient(135deg,#1d4ed8,#0891b2)' : 'linear-gradient(135deg,#7c3aed,#c2410c)' }}>
+               style={{ background: isReact ? 'linear-gradient(135deg,#1d4ed8,#0891b2)' : 'linear-gradient(135deg,#0d9488,#0891b2)' }}>
             {isReact ? '⚡' : '📐'}
           </div>
           <div>
@@ -569,11 +569,11 @@ export default function AgentPanel() {
           <button type="button" onClick={() => { setMode('decompose'); resetOutput() }}
                   className={`relative overflow-hidden rounded-xl border p-3 text-left transition-all duration-300 ${
                     !isReact
-                      ? 'border-purple-400/35 bg-purple-500/12 text-purple-200'
-                      : 'border-white/8 bg-white/3 text-slate-500 hover:border-purple-400/18 hover:bg-purple-500/4'
+                      ? 'border-teal-400/35 bg-teal-500/12 text-teal-200'
+                      : 'border-white/8 bg-white/3 text-slate-500 hover:border-teal-400/18 hover:bg-teal-500/4'
                   }`}
                   style={!isReact ? { backgroundImage: BLUEPRINT_BG } : {}}>
-            {!isReact && <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-purple-500/8 to-transparent" />}
+            {!isReact && <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-teal-500/8 to-transparent" />}
             <div className="relative mb-1 flex items-center gap-1.5">
               <span className="text-sm">📐</span>
               <span className="text-sm font-semibold">Goal Blueprint</span>
@@ -609,7 +609,7 @@ export default function AgentPanel() {
                     goal.trim() && !isRunning
                       ? isReact
                         ? 'bg-blue-500 text-white hover:bg-blue-400'
-                        : 'bg-purple-500 text-white hover:bg-purple-400'
+                        : 'bg-teal-500 text-white hover:bg-teal-400'
                       : 'cursor-not-allowed bg-white/5 text-slate-600'
                   }`}>
             {isRunning ? 'Working...' : isReact ? '⚡ Run' : '📐 Plan'}
@@ -628,11 +628,11 @@ export default function AgentPanel() {
 
         {isRunning && steps.length === 0 && tasks.length === 0 && (
           <div className={`flex items-center gap-3 rounded-xl border px-3 py-4 ${
-            isReact ? 'border-blue-500/20 bg-blue-500/8' : 'border-purple-500/20 bg-purple-500/8'
+            isReact ? 'border-blue-500/20 bg-blue-500/8' : 'border-teal-500/20 bg-teal-500/8'
           }`}>
-            <div className={`h-5 w-5 flex-shrink-0 animate-spin rounded-full border-2 border-t-transparent ${isReact ? 'border-blue-400' : 'border-purple-400'}`} />
+            <div className={`h-5 w-5 flex-shrink-0 animate-spin rounded-full border-2 border-t-transparent ${isReact ? 'border-blue-400' : 'border-teal-400'}`} />
             <div>
-              <p className={`text-sm font-medium ${isReact ? 'text-blue-300' : 'text-purple-300'}`}>
+              <p className={`text-sm font-medium ${isReact ? 'text-blue-300' : 'text-teal-300'}`}>
                 {isReact ? 'Launching agent...' : 'Starting planner...'}
               </p>
               <p className="text-xs text-slate-500">Connecting to Ollama and backend tools</p>
@@ -645,8 +645,8 @@ export default function AgentPanel() {
         {!isReact && tasks.length > 0 && (
           <div>
             <div className="mb-3 flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-purple-400/70">Execution Blueprint</span>
-              <span className="rounded-full border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-xs text-purple-400">{tasks.length} steps</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-teal-400/70">Execution Blueprint</span>
+              <span className="rounded-full border border-teal-500/20 bg-teal-500/10 px-2 py-0.5 text-xs text-teal-400">{tasks.length} steps</span>
             </div>
             <TaskTree tasks={tasks} activeId={activeTaskId} />
           </div>
@@ -664,13 +664,13 @@ export default function AgentPanel() {
         )}
 
         {finalAnswer && !isReact && (
-          <div className="mt-3 overflow-hidden rounded-xl border border-purple-500/30 bg-[#06030f]"
+          <div className="mt-3 overflow-hidden rounded-xl border border-teal-500/30 bg-[#06030f]"
                style={{ backgroundImage: BLUEPRINT_BG }}>
-            <div className="flex items-center gap-2 border-b border-purple-500/15 px-3 py-2">
+            <div className="flex items-center gap-2 border-b border-teal-500/15 px-3 py-2">
               <span className="text-sm" style={{ animation: 'stampIn 0.5s ease-out' }}>📋</span>
-              <span className="text-xs font-bold uppercase tracking-wider text-purple-300">Blueprint Complete</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-teal-300">Blueprint Complete</span>
             </div>
-            <p className="whitespace-pre-wrap px-3 py-3 text-sm leading-relaxed text-purple-200/80">{finalAnswer}</p>
+            <p className="whitespace-pre-wrap px-3 py-3 text-sm leading-relaxed text-teal-200/80">{finalAnswer}</p>
           </div>
         )}
 
