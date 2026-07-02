@@ -361,6 +361,7 @@
   <div class="toc-item"><span class="toc-num">13</span><span><strong>Environment & Config</strong> — .env keys explained</span><span class="toc-dots"></span><span class="toc-pg">15</span></div>
   <div class="toc-item"><span class="toc-num">14</span><span><strong>How to Run</strong> — Step-by-step startup guide</span><span class="toc-dots"></span><span class="toc-pg">16</span></div>
   <div class="toc-item"><span class="toc-num">15</span><span><strong>Changes Made</strong> — All features implemented across sessions</span><span class="toc-dots"></span><span class="toc-pg">17</span></div>
+  <div class="toc-item"><span class="toc-num">16</span><span><strong>Feature User Guides</strong> — Step-by-step how to use every feature</span><span class="toc-dots"></span><span class="toc-pg">18</span></div>
 </div>
 
 
@@ -1379,6 +1380,281 @@ source venv/bin/activate
     <p>4. <strong>Explore AI Showcase</strong>: Scroll below "How It Works" on the landing page → watch the RAG pipeline, ReAct agent, and semantic search animations live.</p>
     <p>5. <strong>Try Agent Mode</strong>: Click "Agent Mode" → type a complex goal → watch Nova reason through it live.</p>
     <p>6. <strong>Top up OpenAI credits</strong> at <code>platform.openai.com/settings/billing</code> to unlock GPT-4o-mini for smarter responses.</p>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  16. FEATURE USER GUIDES                                  -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page" style="page-break-after: auto;">
+  <div class="section-number">
+    <div class="num-badge">16</div>
+    <h1 class="section-title">Feature User Guides</h1>
+  </div>
+  <div class="divider"></div>
+  <p>Step-by-step instructions for every feature in Aurbis Nova. Open the app at <code>http://localhost:5173</code> to follow along.</p>
+
+  <!-- ─── FEATURE 1: SPACE FAVORITES ─── -->
+  <h2>❤️ Space Favorites</h2>
+  <div class="callout callout-teal">
+    <span class="callout-icon">💡</span>
+    <p>Save spaces you like so you can quickly find them later. Favorites are stored in your browser and survive page refreshes.</p>
+  </div>
+  <ul class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>Open the Space Explorer</strong>
+        <p>On the main page, the right panel is the Space Explorer. You'll see all 41 workspace cards arranged in a scrollable grid.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>Find the Heart Button</strong>
+        <p>Each space card has a <strong>❤️ heart icon</strong> in the top-right corner, next to the star rating. It appears grey (unfilled) by default.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Click to Save a Space</strong>
+        <p>Click the heart. It turns <strong style="color:#ef4444">red</strong> and the space is saved instantly to your browser's <code>localStorage</code>. No account or login required.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <strong>View All Saved Spaces</strong>
+        <p>Click the <strong>"❤️ Saved"</strong> pill button in the location filter row (appears after you save at least one space). The count badge shows how many spaces are saved. The explorer immediately filters to show only your saved spaces.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <strong>Remove a Favorite</strong>
+        <p>Click the red heart again on any saved space to un-save it. The count badge updates immediately. If you remove all favorites, the "❤️ Saved" tab disappears.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout callout-blue">
+    <span class="callout-icon">🔄</span>
+    <p><strong>Persistence:</strong> Favorites are saved to <code>localStorage</code> key <code>aurbis_favorites</code> as a JSON array of space IDs (e.g. <code>["KOR-001", "BEL-002"]</code>). They survive browser refresh and tab close, but are local to that browser — not synced across devices.</p>
+  </div>
+
+  <!-- ─── FEATURE 2: REAL QR CODE ─── -->
+  <h2>📱 Real Scannable QR Code</h2>
+  <div class="callout callout-teal">
+    <span class="callout-icon">💡</span>
+    <p>After every booking, the confirmation card shows a QR code that encodes your booking ID — scan it at the Aurbis reception for contactless check-in.</p>
+  </div>
+  <ul class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>Start a booking in the chat</strong>
+        <p>Type something like: <em>"Book Innovation Hub in Koramangala for tomorrow at 2pm for 3 hours"</em></p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>Nova collects your details</strong>
+        <p>Nova will ask for your name and email if not already provided. Answer both questions in the chat.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Booking Confirmation Card appears</strong>
+        <p>After confirming, a green celebration modal appears followed by a booking card in the chat. Look for the <strong>white QR code image</strong> in the top-left of the card.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <strong>Scan the QR code</strong>
+        <p>Open your phone camera and point it at the QR code on screen. It decodes to your unique <strong>AUR-XXXXXX</strong> booking ID. Show this at the Aurbis front desk for check-in.</p>
+      </div>
+    </li>
+  </ul>
+  <div class="callout callout-blue">
+    <span class="callout-icon">⚙️</span>
+    <p><strong>How it works:</strong> The QR is fetched from <code>api.qrserver.com/v1/create-qr-code/?size=96x96&amp;data=AUR-XXXXXX</code>. The booking ID is URL-encoded and passed as the <code>data</code> parameter. The API returns a PNG image — no API key, no backend call required.</p>
+  </div>
+
+  <!-- ─── FEATURE 3: BOOKING HISTORY ─── -->
+  <h2>🧾 Booking History</h2>
+  <div class="callout callout-teal">
+    <span class="callout-icon">💡</span>
+    <p>Every booking you complete is automatically saved locally. View your full booking history from the chat header — no account needed.</p>
+  </div>
+  <ul class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>Complete at least one booking</strong>
+        <p>Finish a booking through the chat. The moment the booking confirmation appears, your booking is automatically saved to <code>localStorage</code>.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>Look for the 🧾 button in the chat header</strong>
+        <p>In the Nova chat widget header (top bar), you'll see three icon buttons: 📊 Analytics, 🧾 History, and 🔄 Reset. The 🧾 button shows a <strong style="color:#14b8a6">teal dot badge</strong> when you have saved bookings.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Click 🧾 to open the panel</strong>
+        <p>The history panel slides open below the header, showing all past bookings in a scrollable list. Each entry shows:</p>
+        <ul style="margin-left:16px; color:#475569; font-size:13px; margin-top:6px;">
+          <li>✅ Space name (e.g. Innovation Hub)</li>
+          <li>📍 Location · Date · Time</li>
+          <li><code style="color:#14b8a6">AUR-XXXXXX</code> — booking ID (teal, monospace)</li>
+          <li>Price (e.g. ₹4,500)</li>
+        </ul>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <strong>Clear history (optional)</strong>
+        <p>Click the <strong>"Clear all"</strong> text button in the top-right of the panel to remove all saved bookings. The teal dot badge disappears from the 🧾 button.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <strong>Close the panel</strong>
+        <p>Click the ✕ button in the panel header, or click the 🧾 button again in the chat header to toggle it closed.</p>
+      </div>
+    </li>
+  </ul>
+  <div class="callout callout-blue">
+    <span class="callout-icon">📦</span>
+    <p><strong>Storage:</strong> Saved to <code>localStorage</code> key <code>aurbis_booking_history</code> as a JSON array of booking objects (max 30 entries — oldest entries are dropped when over the limit). Survives page refresh.</p>
+  </div>
+
+  <!-- ─── FEATURE 4: AI SHOWCASE ─── -->
+  <h2>🤖 AI Features Showcase</h2>
+  <div class="callout callout-teal">
+    <span class="callout-icon">💡</span>
+    <p>The "Under the Hood" section on the landing page visually explains all 4 AI patterns powering Nova with live animations — no interaction needed, just scroll and watch.</p>
+  </div>
+  <ul class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>Scroll down to "Under the Hood"</strong>
+        <p>From the top of <code>http://localhost:5173</code>, scroll past the demo section and the "How Nova Works" (RAG explainer) section. The next section is "Under the Hood" with the subtitle <em>"Powered by 4 AI Patterns"</em>.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>Watch the RAG Pipeline card (🧠)</strong>
+        <p>The left card shows a 5-step pipeline. Each step glows and highlights in turn automatically: <strong>User Query → Embed → ChromaDB Search → Context Inject → LLM Answer</strong>. The active step description updates below the pipeline.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Watch the ReAct Agent terminal (⚡)</strong>
+        <p>The centre card shows a dark terminal window with <strong>live typewriter output</strong>: colour-coded Thought (blue), Action (yellow), Observe (green), and Final Answer (teal) lines appear one by one, just like a real agent reasoning session.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <strong>Watch the Semantic Search card (🔍)</strong>
+        <p>The right card cycles through 4 example queries. For each one, watch the 3-phase animation: your query → AI concept expansion (purple tags) → ranked space results (green list). Use the dot buttons at the bottom to jump to a specific example.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <strong>Watch the Self-Healing RAG card (🛡️)</strong>
+        <p>The bottom-left card shows a 4-step cycle: query sent → low confidence detected → query reformulated → better answer returned. The active step slides right and glows. This runs automatically on every chat query behind the scenes.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <strong>Click "Try it →" buttons to jump to the live demo</strong>
+        <p>Each card has a coloured <strong>"Try it →"</strong> button at the bottom. Clicking it automatically scrolls up to the demo section and switches to the correct mode (Chat Mode or Agent Mode) so you can experience the AI pattern live.</p>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ─── FEATURE 5: AGENT MODE ─── -->
+  <h2>⚡ Agent Mode — Quick Guide</h2>
+  <div class="callout callout-teal">
+    <span class="callout-icon">💡</span>
+    <p>Agent Mode lets an autonomous AI solve your workspace question without you needing to guide it step by step. It reasons, searches, calculates, and returns a final answer.</p>
+  </div>
+  <ul class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>Switch to Agent Mode</strong>
+        <p>Click the <strong>"🤖 Agent Mode"</strong> toggle in the section divider between the hero and the demo area.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>Choose Run Agent or Goal Plan</strong>
+        <p><strong>Run Agent</strong> → executes immediately, shows live Thought/Action/Observe stream.<br/><strong>Goal Plan</strong> → decomposes your goal into a task list first, then you review before running.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Type a complex goal</strong>
+        <p>Examples: <em>"Find the best Bellandur conference room for 15 people under ₹2,000/hr"</em> or <em>"Compare all event spaces in Whitefield by price and capacity"</em>.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <strong>Watch Nova work</strong>
+        <p>Step cards animate in showing each Thought, Action (tool call with parameters), and Observation. The final answer card appears last with a teal border.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <strong>Share the result</strong>
+        <p>Click <strong>📤 Email</strong> to send the agent's result to any email address. Click <strong>WhatsApp</strong> to share it instantly via a pre-filled WhatsApp message link.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="grid-2" style="margin-top: 20px;">
+    <div class="card card-blue">
+      <h3>🔧 Available Agent Tools</h3>
+      <ul style="margin-left:16px; color:#475569; font-size:13px; margin-top:8px; line-height:2;">
+        <li><code>search_spaces</code> — filter by location, type, capacity, price</li>
+        <li><code>get_space_details</code> — full info for a specific space</li>
+        <li><code>compare_spaces</code> — side-by-side comparison</li>
+        <li><code>calculate_price</code> — hourly / half-day / full-day totals</li>
+        <li><code>check_availability</code> — date + time availability check</li>
+      </ul>
+    </div>
+    <div class="card card-teal">
+      <h3>💡 Best Prompts for Agent Mode</h3>
+      <ul style="margin-left:16px; color:#475569; font-size:13px; margin-top:8px; line-height:2;">
+        <li>"Find a room for 25 people in Bellandur under ₹2,000/hr"</li>
+        <li>"Compare Innovation Hub and Sprint Room for a tech team"</li>
+        <li>"Plan a 2-day offsite for 30 people with budget breakdown"</li>
+        <li>"What's the cheapest event space near MG Road?"</li>
+        <li>"Check availability of The Boardroom on Friday 3pm"</li>
+      </ul>
+    </div>
   </div>
 </div>
 
