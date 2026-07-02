@@ -558,6 +558,52 @@ class AurbisRAG:
                 available.append(type_key)
         return available
 
+    def _extract_context_from_history(self, history: list) -> dict:
+        """Scan the last 10 user messages for location, space type, capacity, date and time."""
+        context: dict = {}
+        for entry in reversed((history or [])[-12:]):
+            if entry.get('role') != 'user':
+                continue
+            text = entry.get('content', '')
+            text_lower = text.lower()
+
+            if not context.get('location'):
+                loc = self._extract_location(text)
+                if loc:
+                    context['location'] = loc
+
+            if not context.get('space_type'):
+                if any(w in text_lower for w in ['conference room', 'meeting room', 'boardroom', 'conference call', 'conf room']):
+                    context['space_type'] = 'conference'
+                elif any(w in text_lower for w in ['event space', 'event venue', 'event hall']):
+                    context['space_type'] = 'event'
+                elif any(w in text_lower for w in ['private office', 'office space', 'dedicated office']):
+                    context['space_type'] = 'office'
+                elif any(w in text_lower for w in ['hot desk', 'cowork', 'open desk']):
+                    context['space_type'] = 'desk'
+                # looser single-word fallback only when capacity makes sense
+                elif re.search(r'\bconference\b|\bmeeting\b|\bboardroom\b', text_lower):
+                    context['space_type'] = 'conference'
+
+            if not context.get('capacity'):
+                cap = _extract_capacity(text)
+                if cap:
+                    context['capacity'] = cap
+
+            if not context.get('date'):
+                date = _extract_date(text)
+                if date:
+                    context['date'] = date
+
+            if not context.get('time'):
+                time_val = self._extract_time(text)
+                if time_val:
+                    context['time'] = time_val
+
+            if context.get('location') and context.get('space_type'):
+                break  # have the two most important fields
+        return context
+
     def _extract_space_option(self, msg: str, cap: int = 0) -> Optional[dict]:
         def normalize(text: str) -> str:
             return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9]+', ' ', text.lower())).strip()
@@ -709,6 +755,7 @@ class AurbisRAG:
                 'date': _extract_date(message),
                 'capacity': _extract_capacity(message),
             }
+            # Extract space type from current message
             if any(w in msg for w in ['conference room', 'meeting room', 'boardroom', 'conference call']):
                 booking['space_type'] = 'conference'
             elif any(w in msg for w in ['event space', 'event venue', 'event hall']):
@@ -717,9 +764,21 @@ class AurbisRAG:
                 booking['space_type'] = 'office'
             elif any(w in msg for w in ['hot desk', 'cowork', 'open desk']):
                 booking['space_type'] = 'desk'
-            # Auto-infer type from capacity when not specified
-            elif booking['capacity'] and booking['capacity'] >= 30 and not booking['space_type']:
-                booking['space_type'] = 'event'
+
+            # ── Fill missing details from conversation history ────────────
+            # When user said "book the place" after already discussing rooms,
+            # carry location / space type / capacity over so we don't ask again.
+            hist = self._extract_context_from_history(history)
+            for key in ('location', 'space_type', 'capacity', 'date', 'time'):
+                if not booking.get(key) and hist.get(key):
+                    booking[key] = hist[key]
+                    booking[f'_from_history_{key}'] = True
+
+            # Auto-infer type from capacity when still not specified
+            if not booking['space_type']:
+                cap_val = booking.get('capacity') or 0
+                if cap_val >= 30:
+                    booking['space_type'] = 'event'
             self.booking_sessions[session_id] = booking
 
         if not booking:
