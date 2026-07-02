@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurbis Nova — Interview Prep & Full Code Explanation</title>
+<style>
+  :root{--bg:#0d0f1a;--surface:#131629;--card:#1a1d35;--border:#2a2d4a;--accent:#6366f1;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--cyan:#06b6d4;--text:#e2e8f0;--muted:#64748b;--heading:#a5b4fc;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.7;}
+  a{color:var(--accent);text-decoration:none;}
+  /* ── Layout ── */
+  .page{max-width:980px;margin:0 auto;padding:40px 24px;}
+  /* ── Cover ── */
+  .cover{text-align:center;padding:80px 0 60px;border-bottom:1px solid var(--border);margin-bottom:60px;}
+  .cover h1{font-size:3rem;font-weight:900;background:linear-gradient(135deg,#818cf8,#a78bfa,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em;line-height:1.1;}
+  .cover .sub{font-size:1.2rem;color:var(--muted);margin-top:14px;}
+  .badge-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:28px;}
+  .badge{background:var(--card);border:1px solid var(--border);border-radius:999px;padding:6px 16px;font-size:12px;font-weight:600;color:var(--heading);}
+  /* ── TOC ── */
+  .toc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:60px;}
+  .toc h2{font-size:1.3rem;color:var(--heading);margin-bottom:20px;}
+  .toc ol{padding-left:20px;}
+  .toc li{margin-bottom:8px;color:var(--muted);}
+  .toc li a{color:var(--text);font-weight:500;}
+  .toc li a:hover{color:var(--accent);}
+  /* ── Sections ── */
+  .section{margin-bottom:70px;}
+  .section-title{font-size:1.8rem;font-weight:800;color:var(--heading);margin-bottom:6px;padding-bottom:12px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:12px;}
+  .section-num{background:var(--accent);color:#fff;border-radius:8px;padding:2px 10px;font-size:0.85rem;}
+  /* ── Cards ── */
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px;}
+  .card-title{font-size:1.05rem;font-weight:700;color:var(--cyan);margin-bottom:12px;}
+  /* ── Q&A ── */
+  .qa{background:var(--card);border-left:4px solid var(--accent);border-radius:0 12px 12px 0;padding:20px 24px;margin-bottom:18px;}
+  .qa .q{font-weight:700;color:#fff;margin-bottom:10px;font-size:1rem;}
+  .qa .q::before{content:"Q: ";color:var(--accent);}
+  .qa .a{color:var(--text);line-height:1.8;}
+  .qa .a::before{content:"A: ";color:var(--green);font-weight:600;}
+  /* ── Code blocks ── */
+  pre{background:#0a0c18;border:1px solid var(--border);border-radius:10px;padding:20px;overflow-x:auto;font-family:'Cascadia Code','Fira Code',monospace;font-size:13px;line-height:1.7;margin:16px 0;}
+  code{background:#0a0c18;border-radius:4px;padding:2px 6px;font-family:'Cascadia Code','Fira Code',monospace;font-size:13px;color:#a5b4fc;}
+  .cm{color:#4a5568;}
+  .kw{color:#f472b6;}
+  .fn{color:#60a5fa;}
+  .str{color:#86efac;}
+  .num{color:#fbbf24;}
+  .cl{color:#a78bfa;}
+  /* ── Tables ── */
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;}
+  th{background:#1e2040;color:var(--heading);padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);}
+  td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  /* ── Highlights ── */
+  .tip{background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:14px;}
+  .warn{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:14px;}
+  .success{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:14px;}
+  /* ── Diagram ── */
+  .diagram{background:#0a0c18;border:1px solid var(--border);border-radius:12px;padding:24px;font-family:monospace;font-size:13px;line-height:1.8;color:#94a3b8;overflow-x:auto;margin:16px 0;}
+  /* ── Concept pill ── */
+  .concept{display:inline-block;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:var(--heading);border-radius:6px;padding:2px 10px;font-size:12px;font-weight:600;margin:3px 2px;}
+  /* ── Footer ── */
+  .footer{text-align:center;color:var(--muted);font-size:13px;padding:40px 0;border-top:1px solid var(--border);margin-top:60px;}
+  h3{color:#c4b5fd;font-size:1.05rem;margin:20px 0 8px;}
+  h4{color:#a5b4fc;font-size:0.95rem;margin:16px 0 6px;}
+  p{margin-bottom:10px;}
+  ul,ol{padding-left:22px;margin-bottom:10px;}
+  li{margin-bottom:6px;}
+  strong{color:#fff;}
+  @media print{body{background:#fff;color:#111;} pre{background:#f5f5f5;color:#111;border:1px solid #ccc;} .card,.qa,.toc{border:1px solid #ccc;background:#f9f9f9;} .section-title{color:#1e293b;} .cover h1{-webkit-text-fill-color:#1e293b;}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ═══════════════════════════════ COVER ═══════════════════════════════ -->
+<div class="cover">
+  <h1>Aurbis Nova<br>Interview Prep Guide</h1>
+  <p class="sub">Everything you need to explain this project in any interview — AI, code, architecture &amp; beyond</p>
+  <div class="badge-row">
+    <span class="badge">RAG (LangChain + ChromaDB)</span>
+    <span class="badge">ReAct Agent</span>
+    <span class="badge">FastAPI</span>
+    <span class="badge">React 18 + Vite</span>
+    <span class="badge">Ollama / OpenAI</span>
+    <span class="badge">WhatsApp Bot (Twilio)</span>
+    <span class="badge">SSE Streaming</span>
+    <span class="badge">Semantic Search</span>
+    <span class="badge">Self-Healing AI</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ TOC ══════════════════════════════════ -->
+<div class="toc">
+  <h2>📋 Table of Contents</h2>
+  <ol>
+    <li><a href="#s1">What Is This Project? (Your 60-second pitch)</a></li>
+    <li><a href="#s2">Tech Stack — Why Each Tool Was Chosen</a></li>
+    <li><a href="#s3">RAG (Retrieval-Augmented Generation) — Full Deep Dive</a></li>
+    <li><a href="#s4">AI Agent &amp; ReAct Loop — How the Agent Works</a></li>
+    <li><a href="#s5">Self-Healing RAG — Confidence &amp; Auto-Retry</a></li>
+    <li><a href="#s6">Semantic Search — Vector Embeddings Explained</a></li>
+    <li><a href="#s7">Backend Architecture (FastAPI + Async)</a></li>
+    <li><a href="#s8">Frontend Architecture (React + Vite)</a></li>
+    <li><a href="#s9">Real-Time Streaming with SSE</a></li>
+    <li><a href="#s10">WhatsApp Bot (Twilio Integration)</a></li>
+    <li><a href="#s11">Email Service (SMTP + HTML Templates)</a></li>
+    <li><a href="#s12">Data Layer — JSON + ChromaDB</a></li>
+    <li><a href="#s13">Key Design Patterns Used</a></li>
+    <li><a href="#s14">50 Interview Questions &amp; Answers</a></li>
+    <li><a href="#s15">How to Explain the Project (Story Format)</a></li>
+  </ol>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 1 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s1">
+  <div class="section-title"><span class="section-num">01</span> What Is This Project?</div>
+
+  <div class="card">
+    <div class="card-title">🎯 Your 60-Second Pitch (memorize this!)</div>
+    <p>
+      <strong>Aurbis Nova</strong> is an AI-powered workspace booking assistant for Bangalore. It lets users search, compare, and book co-working spaces through a conversational AI chatbot — like having a smart concierge available 24/7.
+    </p>
+    <p>
+      The backend is built with <strong>FastAPI (Python)</strong> and uses <strong>RAG (Retrieval-Augmented Generation)</strong> powered by <strong>LangChain + ChromaDB</strong> — so the AI always answers from real data about 41 actual spaces. It has a multi-tool <strong>ReAct AI Agent</strong> that can reason through complex multi-step requests. The frontend is <strong>React 18 + Vite</strong>. Users can also interact via <strong>WhatsApp</strong> (Twilio) or receive results by <strong>email</strong>.
+    </p>
+    <p style="color:var(--amber);font-weight:600;">
+      Key highlight for interviews: "I built a production-grade AI system from scratch — not just calling an API. I implemented RAG, vector search, a ReAct reasoning loop, self-healing fallbacks, and real-time streaming."
+    </p>
+  </div>
+
+  <h3>Project Features at a Glance</h3>
+  <table>
+    <tr><th>Feature</th><th>What it does</th><th>Technology Used</th></tr>
+    <tr><td>💬 AI Chat</td><td>Conversational booking assistant</td><td>RAG + LangChain + ChromaDB</td></tr>
+    <tr><td>🤖 Agent Mode</td><td>Multi-step AI agent with tool calls</td><td>ReAct Loop + 5 custom tools</td></tr>
+    <tr><td>🔍 Semantic Search</td><td>Finds spaces by meaning, not keywords</td><td>Vector Embeddings + Cosine Similarity</td></tr>
+    <tr><td>🔧 Self-Healing RAG</td><td>AI detects low confidence → retries</td><td>Confidence scoring + Query reformulation</td></tr>
+    <tr><td>📡 Real-time Streaming</td><td>Agent steps appear live</td><td>Server-Sent Events (SSE)</td></tr>
+    <tr><td>📱 WhatsApp Bot</td><td>Chat with Nova on WhatsApp</td><td>Twilio SDK + FastAPI webhooks</td></tr>
+    <tr><td>📧 Email Notifications</td><td>Booking confirmations by email</td><td>Gmail SMTP + HTML templates</td></tr>
+    <tr><td>❤️ Space Favorites</td><td>Save favorite spaces</td><td>React + localStorage</td></tr>
+    <tr><td>📜 Booking History</td><td>View past bookings</td><td>React + localStorage (max 30)</td></tr>
+    <tr><td>🔳 Real QR Code</td><td>Scannable QR for each booking</td><td>api.qrserver.com API</td></tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 2 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s2">
+  <div class="section-title"><span class="section-num">02</span> Tech Stack — Why Each Tool</div>
+
+  <table>
+    <tr><th>Layer</th><th>Tool</th><th>Why This Choice</th></tr>
+    <tr><td>Backend Framework</td><td>FastAPI (Python)</td><td>Async support, auto Swagger docs, Pydantic validation, very fast</td></tr>
+    <tr><td>LLM Orchestration</td><td>LangChain</td><td>Standard library for RAG pipelines — handles splitting, embedding, retrieval</td></tr>
+    <tr><td>Vector Database</td><td>ChromaDB</td><td>Local, no cloud needed, perfect for embedding storage and cosine similarity search</td></tr>
+    <tr><td>LLM Primary</td><td>Ollama (llama3)</td><td>Free, runs locally, no API cost, works offline</td></tr>
+    <tr><td>LLM Fallback</td><td>OpenAI (gpt-4o-mini)</td><td>High quality fallback when Ollama unavailable</td></tr>
+    <tr><td>Frontend</td><td>React 18 + Vite</td><td>Component-based UI, Vite = 10x faster dev server than CRA</td></tr>
+    <tr><td>Styling</td><td>Tailwind CSS</td><td>Utility-first, no CSS files needed, consistent design tokens</td></tr>
+    <tr><td>Icons</td><td>Lucide React</td><td>Lightweight, tree-shakeable, consistent icon set</td></tr>
+    <tr><td>WhatsApp</td><td>Twilio SDK</td><td>Industry-standard, handles WhatsApp Business API, free sandbox</td></tr>
+    <tr><td>Email</td><td>smtplib (Gmail)</td><td>No extra library needed, works with Gmail App Passwords</td></tr>
+    <tr><td>Streaming</td><td>SSE (Server-Sent Events)</td><td>Simpler than WebSockets for one-way server→client streaming</td></tr>
+  </table>
+
+  <div class="tip">
+    <strong>💡 Interview insight:</strong> "I chose ChromaDB over Pinecone/Weaviate because this is a self-contained local app — no cloud dependencies, no cost, and it supports the same API as cloud alternatives, so it's easy to swap later."
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 3 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s3">
+  <div class="section-title"><span class="section-num">03</span> RAG — Full Deep Dive</div>
+
+  <h3>What is RAG?</h3>
+  <p>
+    <strong>RAG = Retrieval-Augmented Generation.</strong> Instead of asking an LLM (like ChatGPT) to answer from memory (which it might hallucinate), you <em>give it the relevant data</em> at the time of the question. Think of it like: "Here are the top 5 results — now answer based only on these."
+  </p>
+
+  <div class="diagram">
+User asks: "Cheapest conference room in Koramangala?"
+        │
+        ▼
+  ┌─────────────────────────────────────────────────────────┐
+  │  Step 1 — EMBED the question                           │
+  │  "cheapest conference room koramangala"                 │
+  │  → convert to a vector (list of ~1536 numbers)         │
+  │  [0.12, -0.45, 0.88, 0.03, ... ]                      │
+  └────────────────────┬────────────────────────────────────┘
+                       │
+                       ▼
+  ┌─────────────────────────────────────────────────────────┐
+  │  Step 2 — RETRIEVE similar docs from ChromaDB          │
+  │  Find top-3 most similar document chunks               │
+  │  → "Innovation Hub [KOR-001]: ₹1,500/hr, 12 pax..."   │
+  │  → "The Boardroom [KOR-002]: ₹2,000/hr, 8 pax..."     │
+  │  → "Collaboration Zone [KOR-003]: ₹800/hr, 20 pax..." │
+  └────────────────────┬────────────────────────────────────┘
+                       │
+                       ▼
+  ┌─────────────────────────────────────────────────────────┐
+  │  Step 3 — AUGMENT the prompt                           │
+  │  "Context: [those 3 chunks]                            │
+  │   User question: cheapest conference room in Kora...?" │
+  └────────────────────┬────────────────────────────────────┘
+                       │
+                       ▼
+  ┌─────────────────────────────────────────────────────────┐
+  │  Step 4 — GENERATE with LLM                            │
+  │  LLM reads context + question → produces answer        │
+  │  "The cheapest is Collaboration Zone at ₹800/hr..."   │
+  └─────────────────────────────────────────────────────────┘
+  </div>
+
+  <h3>How RAG is Built in This Project</h3>
+
+  <div class="card">
+    <div class="card-title">📄 Step 1 — Load & Split Documents</div>
+    <pre><code><span class="cm"># rag_engine.py — loading space data into documents</span>
+<span class="kw">from</span> langchain_core.documents <span class="kw">import</span> Document
+<span class="kw">from</span> langchain_text_splitters <span class="kw">import</span> RecursiveCharacterTextSplitter
+
+<span class="cm"># Each space becomes a Document with text + metadata</span>
+doc = Document(
+    page_content=<span class="str">"Innovation Hub: 12 pax, ₹1500/hr, Zoom room..."</span>,
+    metadata={<span class="str">"id"</span>: <span class="str">"KOR-001"</span>, <span class="str">"location"</span>: <span class="str">"Koramangala"</span>}
+)
+
+<span class="cm"># Splitter breaks large text into overlapping chunks</span>
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=<span class="num">500</span>,     <span class="cm"># each chunk = 500 characters</span>
+    chunk_overlap=<span class="num">50</span>,   <span class="cm"># 50 chars overlap so context isn't lost</span>
+)
+chunks = splitter.split_documents(documents)</code></pre>
+    <p><strong>Why overlap?</strong> If an answer spans a chunk boundary, the 50-char overlap means it still appears in one complete chunk.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🧮 Step 2 — Create Embeddings &amp; Store in ChromaDB</div>
+    <pre><code><span class="cm"># Convert chunks to vectors and store them</span>
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> OpenAIEmbeddings
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> Chroma
+
+embedding_model = OpenAIEmbeddings(model=<span class="str">"text-embedding-3-small"</span>)
+
+<span class="cm"># This one line does everything:</span>
+<span class="cm"># 1. Calls OpenAI API to embed each chunk</span>
+<span class="cm"># 2. Saves vectors + text to chroma_db/ folder</span>
+vectorstore = Chroma.from_documents(
+    documents=chunks,
+    embedding=embedding_model,
+    persist_directory=<span class="str">"./chroma_db"</span>
+)</code></pre>
+    <p>The <code>chroma_db/</code> folder is like a database that stores all space information as numbers (vectors) so you can do similarity search.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔍 Step 3 — Retrieve Relevant Context</div>
+    <pre><code><span class="cm"># When user asks a question:</span>
+retriever = vectorstore.as_retriever(search_kwargs={<span class="str">"k"</span>: <span class="num">4</span>})
+<span class="cm"># k=4 → get 4 most relevant chunks</span>
+
+relevant_docs = retriever.get_relevant_documents(<span class="str">"cheapest room Koramangala"</span>)
+context = <span class="str">"\n\n"</span>.join(doc.page_content <span class="kw">for</span> doc <span class="kw">in</span> relevant_docs)</code></pre>
+    <p>ChromaDB computes <strong>cosine similarity</strong> between the question vector and all stored chunk vectors, then returns the top-4 closest matches.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💬 Step 4 — Build Prompt &amp; Generate Answer</div>
+    <pre><code><span class="cm"># System prompt template (from rag_engine.py)</span>
+SYSTEM_PROMPT = <span class="str">"""You are Nova, the AI workspace assistant for Aurbis.
+
+Context from Aurbis knowledge base:
+{context}
+
+Conversation history:
+{chat_history}
+
+User question: {question}
+
+Nova's response:"""</span>
+
+<span class="cm"># Fill in the template and send to LLM</span>
+prompt = SYSTEM_PROMPT.format(
+    context=context,
+    chat_history=format_history(session_history),
+    question=user_message
+)
+response = llm.invoke(prompt)</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔄 Step 5 — LLM Fallback Chain (3-tier)</div>
+    <pre><code><span class="cm"># rag_engine.py — AurbisRAG class tries 3 modes</span>
+<span class="kw">def</span> <span class="fn">_init_llm</span>(self):
+    <span class="cm"># Try 1: OpenAI (gpt-4o-mini)</span>
+    <span class="kw">try</span>:
+        <span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
+        self.llm = ChatOpenAI(model=<span class="str">"gpt-4o-mini"</span>, temperature=<span class="num">0.7</span>)
+        self.mode = <span class="str">"openai"</span>; <span class="kw">return</span>
+    <span class="kw">except</span>: <span class="kw">pass</span>
+
+    <span class="cm"># Try 2: Ollama (llama3 — local, FREE)</span>
+    <span class="kw">try</span>:
+        <span class="kw">from</span> langchain_ollama <span class="kw">import</span> ChatOllama
+        self.llm = ChatOllama(model=<span class="str">"llama3"</span>, base_url=<span class="str">"http://localhost:11434"</span>)
+        self.mode = <span class="str">"ollama"</span>; <span class="kw">return</span>
+    <span class="kw">except</span>: <span class="kw">pass</span>
+
+    <span class="cm"># Fallback 3: DemoRAG — keyword-based, no LLM needed</span>
+    self.mode = <span class="str">"demo"</span></code></pre>
+    <p>This makes the app <strong>resilient</strong> — it works even without internet or API keys.</p>
+  </div>
+
+  <h3>RAG vs Fine-Tuning — Interview Must-Know</h3>
+  <table>
+    <tr><th></th><th>RAG</th><th>Fine-Tuning</th></tr>
+    <tr><td>How it works</td><td>Fetches data at query time</td><td>Bakes data into model weights</td></tr>
+    <tr><td>Update data</td><td>Just update ChromaDB</td><td>Must retrain the model (expensive)</td></tr>
+    <tr><td>Cost</td><td>Low (storage only)</td><td>Very high (GPU training hours)</td></tr>
+    <tr><td>Hallucinations</td><td>Reduced (grounded in docs)</td><td>Still possible</td></tr>
+    <tr><td>Best for</td><td>Domain-specific Q&amp;A (our case)</td><td>Changing model behavior/style</td></tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 4 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s4">
+  <div class="section-title"><span class="section-num">04</span> AI Agent &amp; ReAct Loop</div>
+
+  <h3>What is a ReAct Agent?</h3>
+  <p>
+    <strong>ReAct = Reason + Act.</strong> Instead of answering directly, the AI loops through: <em>Think about what to do → Use a tool → Look at the result → Think again → Use another tool → ... → Give final answer.</em>
+  </p>
+
+  <div class="diagram">
+User Goal: "Find a conference room in Koramangala for 10 people under ₹2000 and tell me the price"
+      │
+      ▼
+  ┌──────────────────────────────────────────────────────────────┐
+  │  Thought: I need to search for spaces first.                │
+  │  Action: search_spaces(location="Koramangala", capacity=10, │
+  │                         max_price=2000)                     │
+  │  Observe: "Found 3 spaces: Innovation Hub [KOR-001]..."     │
+  └──────────────────────────────────────────────────────────────┘
+      │
+      ▼
+  ┌──────────────────────────────────────────────────────────────┐
+  │  Thought: I have the IDs. Now calculate the price.          │
+  │  Action: calculate_price(space_id="KOR-001", hours=1)       │
+  │  Observe: "Innovation Hub: ₹1,500/hr × 1hr = ₹1,500"      │
+  └──────────────────────────────────────────────────────────────┘
+      │
+      ▼
+  ┌──────────────────────────────────────────────────────────────┐
+  │  Thought: I have all information to give the answer.        │
+  │  Final Answer: "Innovation Hub fits 12 people at ₹1,500/hr"│
+  └──────────────────────────────────────────────────────────────┘
+  </div>
+
+  <h3>The 5 Agent Tools</h3>
+  <table>
+    <tr><th>Tool</th><th>What it does</th><th>Key Parameters</th></tr>
+    <tr><td><code>search_spaces</code></td><td>Filter spaces by location, capacity, price</td><td>location, capacity, space_type, max_price</td></tr>
+    <tr><td><code>get_space_details</code></td><td>Full info for one space ID</td><td>space_id</td></tr>
+    <tr><td><code>calculate_price</code></td><td>Compute cost for a booking</td><td>space_id, hours</td></tr>
+    <tr><td><code>compare_spaces</code></td><td>Side-by-side table comparison</td><td>space_ids (comma-separated)</td></tr>
+    <tr><td><code>check_availability</code></td><td>Is a space free on a date?</td><td>space_id, date, time</td></tr>
+  </table>
+
+  <div class="card">
+    <div class="card-title">🔧 How Tool Calling Works in Code</div>
+    <pre><code><span class="cm"># agent_engine.py — AurbisAgent.stream_react()</span>
+<span class="cm"># The LLM outputs text like:</span>
+<span class="cm">#   "Thought: I need to search..."</span>
+<span class="cm">#   "Action: search_spaces(location="Koramangala", capacity=10)"</span>
+
+<span class="cm"># We parse the Action line with regex:</span>
+action_match = re.search(<span class="str">r'Action:\s*(\w+)\((.*?)\)'</span>, raw_output)
+tool_name = action_match.group(<span class="num">1</span>)   <span class="cm"># "search_spaces"</span>
+args_str  = action_match.group(<span class="num">2</span>)   <span class="cm"># 'location="Koramangala", capacity=10'</span>
+
+<span class="cm"># Parse kwargs safely (using ast.literal_eval for safety)</span>
+<span class="kw">import</span> ast
+kwargs = {}
+<span class="kw">for</span> pair <span class="kw">in</span> re.finditer(<span class="str">r'(\w+)=("[^"]*"|\d+)'</span>, args_str):
+    key, val = pair.group(<span class="num">1</span>), pair.group(<span class="num">2</span>)
+    kwargs[key] = ast.literal_eval(val)  <span class="cm"># safe parse</span>
+
+<span class="cm"># Call the actual Python tool</span>
+result = tools.call(tool_name, kwargs)
+
+<span class="cm"># Feed observation back to the LLM for the next iteration</span>
+history.append(<span class="str">f"Observation: {result}"</span>)</code></pre>
+  </div>
+
+  <h3>Goal Decomposition</h3>
+  <p>For complex goals, the agent first breaks it into ordered sub-tasks:</p>
+  <pre><code><span class="cm"># DECOMPOSE_PROMPT asks the LLM to return a JSON task list</span>
+DECOMPOSE_PROMPT = <span class="str">"""
+Break this goal into 3-5 ordered subtasks.
+Goal: "{goal}"
+Output ONLY valid JSON:
+[{"id":1,"task":"Search conference rooms Koramangala","tool":"search_spaces"},
+ {"id":2,"task":"Calculate price for top result","tool":"calculate_price"}]
+"""</span>
+
+<span class="cm"># Frontend shows each task as a progress card</span>
+<span class="cm"># Tasks update in real-time via SSE streaming</span></code></pre>
+
+  <div class="success">
+    <strong>✅ Interview answer tip:</strong> "The agent uses a ReAct (Reason + Act) pattern — it loops up to 5 times, calling one tool per loop, and adds each tool result to the conversation context. This lets it solve multi-step problems that a simple chatbot can't handle."
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 5 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s5">
+  <div class="section-title"><span class="section-num">05</span> Self-Healing RAG</div>
+
+  <h3>The Problem: Low-Confidence Answers</h3>
+  <p>Sometimes the RAG retrieves irrelevant context, and the LLM gives a vague answer like <em>"I'm not sure about that"</em>. Instead of showing this to the user, we detect it and retry with a better-formed query.</p>
+
+  <div class="card">
+    <div class="card-title">🔧 How Self-Healing Works</div>
+    <pre><code><span class="cm"># rag_engine.py — chat_with_healing() method</span>
+<span class="kw">async def</span> <span class="fn">chat_with_healing</span>(self, message: str, session_id: str) -> dict:
+
+    <span class="cm"># Step 1: First attempt with original query</span>
+    result = <span class="kw">await</span> self._chat(message, session_id)
+
+    <span class="cm"># Step 2: Check confidence of the answer</span>
+    confidence = self._score_confidence(result[<span class="str">"answer"</span>])
+
+    <span class="cm"># Step 3: If confidence is LOW, try again with a better query</span>
+    <span class="kw">if</span> confidence < <span class="num">0.4</span>:
+        better_query = self._reformulate(message)
+        result = <span class="kw">await</span> self._chat(better_query, session_id)
+        result[<span class="str">"healed"</span>] = <span class="kw">True</span>   <span class="cm"># tag so UI can show "Self-healed"</span>
+
+    <span class="kw">return</span> result</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📊 Confidence Scoring Logic</div>
+    <pre><code><span class="kw">def</span> <span class="fn">_score_confidence</span>(self, answer: str) -> float:
+    <span class="str">"""Score 0.0 to 1.0 how confident the answer sounds."""</span>
+    answer_lower = answer.lower()
+
+    <span class="cm"># Phrases that signal low confidence</span>
+    low_confidence_phrases = [
+        <span class="str">"i don't know"</span>, <span class="str">"i'm not sure"</span>, <span class="str">"i cannot find"</span>,
+        <span class="str">"no information"</span>, <span class="str">"not available"</span>, <span class="str">"unable to"</span>,
+        <span class="str">"unfortunately"</span>, <span class="str">"cannot answer"</span>
+    ]
+
+    <span class="cm"># Phrases that signal high confidence</span>
+    high_confidence_phrases = [
+        <span class="str">"₹"</span>, <span class="str">"per hour"</span>, <span class="str">"koramangala"</span>, <span class="str">"whitefield"</span>,
+        <span class="str">"capacity"</span>, <span class="str">"book"</span>, <span class="str">"available"</span>
+    ]
+
+    score = <span class="num">0.5</span>   <span class="cm"># start neutral</span>
+    <span class="kw">for</span> phrase <span class="kw">in</span> low_confidence_phrases:
+        <span class="kw">if</span> phrase <span class="kw">in</span> answer_lower:
+            score -= <span class="num">0.15</span>
+    <span class="kw">for</span> phrase <span class="kw">in</span> high_confidence_phrases:
+        <span class="kw">if</span> phrase <span class="kw">in</span> answer_lower:
+            score += <span class="num">0.1</span>
+
+    <span class="kw">return</span> max(<span class="num">0.0</span>, min(<span class="num">1.0</span>, score))</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔄 Query Reformulation</div>
+    <pre><code><span class="kw">def</span> <span class="fn">_reformulate</span>(self, query: str) -> str:
+    <span class="str">"""Make the query more specific so retrieval is better."""</span>
+    <span class="cm"># Add domain context to help the retriever</span>
+    <span class="kw">return</span> (
+        <span class="str">f"In the context of Aurbis workspace booking in Bangalore: {query}. "</span>
+        <span class="str">f"Please provide specific space names, prices, and locations."</span>
+    )</code></pre>
+  </div>
+
+  <div class="tip">
+    <strong>💡 Interview answer:</strong> "Self-healing RAG is a pattern where the system detects low-confidence answers by scanning for uncertainty phrases, then automatically retries with a reformulated query. This improves answer quality without any human intervention."
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 6 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s6">
+  <div class="section-title"><span class="section-num">06</span> Semantic Search — Vector Embeddings Explained</div>
+
+  <h3>What is Semantic Search?</h3>
+  <p>
+    Normal search finds <strong>exact words</strong>. Semantic search finds <strong>similar meaning</strong>. So a user typing <em>"quiet spot for focused work"</em> will find <em>"Focus Pod — private office, silent zone"</em> even though none of those exact words appear.
+  </p>
+
+  <h3>What is a Vector Embedding?</h3>
+  <p>Every piece of text gets converted to a list of ~1,536 decimal numbers (a "vector"). Similar meanings → similar numbers → close together in space.</p>
+
+  <div class="diagram">
+"conference room"  → [0.12, -0.45, 0.88, 0.03, ...]
+"meeting room"     → [0.11, -0.44, 0.87, 0.04, ...]   ← very close! (similar meaning)
+"coffee shop"      → [-0.78, 0.92, -0.11, 0.67, ...]  ← far away
+
+Similarity is measured with COSINE SIMILARITY:
+  cos(θ) = (A · B) / (|A| × |B|)
+  Range: -1 (opposite) to +1 (identical)
+  "conference room" vs "meeting room" → cos ≈ 0.97 (very similar!)
+  </div>
+
+  <h3>Embedding in Code</h3>
+  <pre><code><span class="cm"># When indexing (done once at startup):</span>
+<span class="cm"># "Innovation Hub [KOR-001]: 12 pax, Zoom Room certified, ₹1500/hr..."</span>
+<span class="cm"># → embed → vector stored in ChromaDB</span>
+
+<span class="cm"># When user searches:</span>
+<span class="cm"># "cheapest room for 10 people in Koramangala"</span>
+<span class="cm"># → embed → vector → find top-4 closest stored vectors → return those docs</span>
+
+<span class="cm"># The magic: Ollama/OpenAI embedding models trained on billions of texts</span>
+<span class="cm"># already "know" that "meeting room" ≈ "conference room"</span></code></pre>
+
+  <h3>Why This Is Better Than Keyword Search</h3>
+  <table>
+    <tr><th>User Query</th><th>Keyword Search Finds</th><th>Semantic Search Finds</th></tr>
+    <tr><td>"quiet workspace"</td><td>Nothing (no "quiet" in data)</td><td>Focus Pod (described as "silent zone")</td></tr>
+    <tr><td>"big hall for event"</td><td>Nothing</td><td>Grand Hall, Sky Deck, Community Hall</td></tr>
+    <tr><td>"cheap desk"</td><td>Nothing</td><td>Hot desks starting ₹250/hr</td></tr>
+    <tr><td>"room for 3 people"</td><td>Exact match only</td><td>All rooms with capacity ≥ 3</td></tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 7 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s7">
+  <div class="section-title"><span class="section-num">07</span> Backend Architecture (FastAPI)</div>
+
+  <h3>Project Structure</h3>
+  <pre><code>backend/
+├── main.py          ← FastAPI app, all routes, CORS, startup
+├── rag_engine.py    ← RAG pipeline, LLM fallback, session history
+├── agent_engine.py  ← ReAct agent, 5 tools, goal decomposer
+├── email_service.py ← Gmail SMTP, HTML email templates
+├── whatsapp_bot.py  ← Twilio WhatsApp handler
+├── data/
+│   └── spaces.json  ← 41 spaces, all locations, pricing
+├── chroma_db/       ← Vector embeddings (auto-generated)
+└── .env             ← API keys (never committed to git)</code></pre>
+
+  <h3>Key API Endpoints</h3>
+  <table>
+    <tr><th>Method</th><th>Route</th><th>What it does</th></tr>
+    <tr><td>GET</td><td>/health</td><td>Check if server is up</td></tr>
+    <tr><td>POST</td><td>/api/chat</td><td>RAG chat — send message, get AI reply</td></tr>
+    <tr><td>GET</td><td>/api/agent/stream</td><td>SSE stream of agent ReAct steps</td></tr>
+    <tr><td>POST</td><td>/api/book</td><td>Confirm a booking, send email</td></tr>
+    <tr><td>GET</td><td>/api/spaces</td><td>List all spaces (with filters)</td></tr>
+    <tr><td>POST</td><td>/api/notify</td><td>Send email receipt</td></tr>
+    <tr><td>POST</td><td>/api/whatsapp</td><td>Twilio webhook for WhatsApp</td></tr>
+  </table>
+
+  <div class="card">
+    <div class="card-title">🔧 The Chat Endpoint</div>
+    <pre><code><span class="cm"># main.py</span>
+<span class="kw">@</span>app.post(<span class="str">"/api/chat"</span>, response_model=ChatResponse)
+<span class="kw">async def</span> <span class="fn">chat</span>(request: ChatRequest):
+    <span class="cm"># 1. Get or create session ID</span>
+    session_id = request.session_id <span class="kw">or</span> str(uuid.uuid4())
+
+    <span class="cm"># 2. Route to RAG (with self-healing)</span>
+    result = <span class="kw">await</span> rag.chat_with_healing(request.message, session_id)
+
+    <span class="cm"># 3. Check if booking was confirmed in the conversation</span>
+    booking_confirmed = result.get(<span class="str">"booking_confirmed"</span>, <span class="kw">False</span>)
+
+    <span class="cm"># 4. Return structured response</span>
+    <span class="kw">return</span> ChatResponse(
+        answer=result[<span class="str">"answer"</span>],
+        sources=result.get(<span class="str">"sources"</span>, []),
+        mode=result.get(<span class="str">"mode"</span>, <span class="str">"demo"</span>),
+        session_id=session_id,
+        booking_confirmed=booking_confirmed,
+        booking_details=result.get(<span class="str">"booking_details"</span>, {})
+    )</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🌐 CORS Setup</div>
+    <pre><code><span class="cm"># main.py — allow React frontend (port 5173) to call the API</span>
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[<span class="str">"*"</span>],      <span class="cm"># restrict to specific origins in production!</span>
+    allow_credentials=<span class="kw">True</span>,
+    allow_methods=[<span class="str">"*"</span>],
+    allow_headers=[<span class="str">"*"</span>],
+)</code></pre>
+    <p><strong>Why CORS?</strong> Browsers block cross-origin requests by default. Since the React app runs on port 5173 and FastAPI on 8000, CORS middleware tells the browser "it's safe to let that other port call me."</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🗂️ Pydantic Models — Type-Safe Request/Response</div>
+    <pre><code><span class="cm"># Pydantic validates incoming request data automatically</span>
+<span class="kw">class</span> <span class="cl">ChatRequest</span>(BaseModel):
+    message: str          <span class="cm"># required, must be string</span>
+    session_id: Optional[str] = <span class="kw">None</span>  <span class="cm"># optional</span>
+
+<span class="kw">class</span> <span class="cl">BookingRequest</span>(BaseModel):
+    space_id: str
+    date: str
+    time_slot: str
+    duration_hours: int = <span class="num">1</span>   <span class="cm"># default value</span>
+    attendees: int
+    name: str
+    email: str
+    notes: Optional[str] = <span class="kw">None</span>
+
+<span class="cm"># FastAPI auto-validates — if email is missing, it returns 422 error</span></code></pre>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 8 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s8">
+  <div class="section-title"><span class="section-num">08</span> Frontend Architecture (React + Vite)</div>
+
+  <h3>Project Structure</h3>
+  <pre><code>frontend/src/
+├── App.jsx              ← Root component, app-level state
+├── components/
+│   ├── ChatWidget.jsx   ← Main chat interface, booking flow, QR, history
+│   ├── AgentPanel.jsx   ← Agent mode UI — steps, tasks, share panel
+│   ├── SpaceExplorer.jsx← Space search grid with filters
+│   ├── SpaceCard.jsx    ← Individual space card + favorites heart
+│   ├── AIShowcase.jsx   ← Landing page AI demos (RAG, Agent, Semantic, Healing)
+│   └── ...
+└── main.jsx             ← React DOM mount point</code></pre>
+
+  <h3>Key React Concepts Used</h3>
+
+  <div class="card">
+    <div class="card-title">🪝 useState — Managing Component State</div>
+    <pre><code><span class="cm">// ChatWidget.jsx</span>
+<span class="kw">const</span> [messages,     setMessages]     = useState([])        <span class="cm">// chat history</span>
+<span class="kw">const</span> [inputVal,     setInputVal]     = useState(<span class="str">''</span>)       <span class="cm">// input field</span>
+<span class="kw">const</span> [loading,      setLoading]      = useState(<span class="kw">false</span>)    <span class="cm">// spinner</span>
+<span class="kw">const</span> [showHistory,  setShowHistory]  = useState(<span class="kw">false</span>)   <span class="cm">// history panel</span>
+<span class="kw">const</span> [sessionId,    setSessionId]    = useState(<span class="kw">null</span>)    <span class="cm">// unique session</span></code></pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🪝 useEffect — Side Effects &amp; Lifecycle</div>
+    <pre><code><span class="cm">// SpaceExplorer.jsx — listen for favorites changes across components</span>
+useEffect(() => {
+    <span class="kw">const</span> updateFavs = () => {
+        <span class="kw">const</span> saved = JSON.parse(localStorage.getItem(<span class="str">'aurbis_favorites'</span>) || <span class="str">'[]'</span>)
+        setFavorites(saved)
+    }
+    updateFavs()  <span class="cm">// run once on mount</span>
+    window.addEventListener(<span class="str">'aurbis_favorites_changed'</span>, updateFavs)
+    <span class="kw">return</span> () => window.removeEventListener(<span class="str">'aurbis_favorites_changed'</span>, updateFavs)
+}, [])  <span class="cm">// empty array = run only once</span></code></pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🪝 useMemo — Expensive Calculations Cached</div>
+    <pre><code><span class="cm">// AgentPanel.jsx — WhatsApp share URL only recalculated when goal/result changes</span>
+<span class="kw">const</span> whatsappUrl = useMemo(() => {
+    <span class="kw">const</span> text = <span class="str">`Aurbis Nova Result\nGoal: ${goal}\n\nResult:\n${result}`</span>
+    <span class="kw">return</span> <span class="str">`https://wa.me/?text=${encodeURIComponent(text)}`</span>
+}, [goal, result])  <span class="cm">// only recalculate if goal or result changes</span></code></pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🪝 useRef — DOM Access &amp; Persistent Values</div>
+    <pre><code><span class="cm">// ChatWidget.jsx — scroll to bottom of chat</span>
+<span class="kw">const</span> messagesEndRef = useRef(<span class="kw">null</span>)
+
+useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: <span class="str">'smooth'</span> })
+}, [messages])  <span class="cm">// scroll whenever messages update</span>
+
+<span class="cm">// In JSX:</span>
+&lt;div ref={messagesEndRef} /&gt;  <span class="cm">// anchor at bottom of message list</span></code></pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⬆️ Props &amp; Component Communication</div>
+    <pre><code><span class="cm">// App.jsx passes callback down to AIShowcase</span>
+&lt;AIShowcase onSwitchMode={(mode) => {
+    setAppMode(mode)
+    document.getElementById(<span class="str">'demo'</span>)?.scrollIntoView({ behavior: <span class="str">'smooth'</span> })
+}} /&gt;
+
+<span class="cm">// AIShowcase.jsx receives and uses it</span>
+<span class="kw">function</span> <span class="fn">AIShowcase</span>({ onSwitchMode }) {
+    <span class="kw">return</span> (
+        &lt;button onClick={() =&gt; onSwitchMode(<span class="str">'agent'</span>)}&gt;Try Agent Mode&lt;/button&gt;
+    )
+}</code></pre>
+  </div>
+
+  <h3>LocalStorage — Persistent Data Without a Database</h3>
+  <div class="card">
+    <div class="card-title">💾 Favorites &amp; Booking History</div>
+    <pre><code><span class="cm">// SpaceCard.jsx — toggle favorite</span>
+<span class="kw">function</span> <span class="fn">toggleFav</span>(e) {
+    e.stopPropagation()  <span class="cm">// don't open the card</span>
+    <span class="kw">const</span> saved = JSON.parse(localStorage.getItem(<span class="str">'aurbis_favorites'</span>) || <span class="str">'[]'</span>)
+    <span class="kw">const</span> updated = isFaved
+        ? saved.filter(id => id !== space.id)   <span class="cm">// remove</span>
+        : [...saved, space.id]                   <span class="cm">// add</span>
+    localStorage.setItem(<span class="str">'aurbis_favorites'</span>, JSON.stringify(updated))
+    setIsFaved(!isFaved)
+    <span class="cm">// Tell other components (SpaceExplorer) about the change</span>
+    window.dispatchEvent(<span class="kw">new</span> Event(<span class="str">'aurbis_favorites_changed'</span>))
+}
+
+<span class="cm">// ChatWidget.jsx — save booking to history</span>
+<span class="kw">const</span> newEntry = { id: bookingId, space: spaceName, date, time, price }
+<span class="kw">const</span> history = JSON.parse(localStorage.getItem(<span class="str">'aurbis_booking_history'</span>) || <span class="str">'[]'</span>)
+<span class="kw">const</span> updated = [newEntry, ...history].slice(<span class="num">0</span>, <span class="num">30</span>)  <span class="cm">// keep max 30</span>
+localStorage.setItem(<span class="str">'aurbis_booking_history'</span>, JSON.stringify(updated))</code></pre>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 9 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s9">
+  <div class="section-title"><span class="section-num">09</span> Real-Time Streaming with SSE</div>
+
+  <h3>What is SSE?</h3>
+  <p>
+    <strong>Server-Sent Events (SSE)</strong> is a way for the server to push data to the browser continuously — like a live news ticker. The browser opens one connection and the server keeps sending updates.
+  </p>
+
+  <div class="diagram">
+Frontend                           Backend (FastAPI)
+────────                           ─────────────────
+GET /api/agent/stream?goal=...  →  Opens SSE connection
+                                   Agent starts ReAct loop...
+             ← data: {"type":"thought","content":"I need to search..."}
+             ← data: {"type":"action","tool":"search_spaces","args":{...}}
+             ← data: {"type":"observation","content":"Found 3 spaces..."}
+             ← data: {"type":"thought","content":"Now calculate price..."}
+             ← data: {"type":"action","tool":"calculate_price","args":{...}}
+             ← data: {"type":"final","content":"Innovation Hub is ₹1500/hr"}
+Connection closes.
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔧 SSE in FastAPI (Backend)</div>
+    <pre><code><span class="cm"># main.py</span>
+<span class="kw">@</span>app.get(<span class="str">"/api/agent/stream"</span>)
+<span class="kw">async def</span> <span class="fn">agent_stream</span>(goal: str, session_id: Optional[str] = <span class="kw">None</span>):
+    <span class="kw">async def</span> <span class="fn">event_generator</span>():
+        agent = AurbisAgent()
+        <span class="kw">async for</span> step <span class="kw">in</span> agent.stream_react(goal):
+            <span class="cm"># SSE format: "data: {json}\n\n"</span>
+            payload = json.dumps(step)
+            <span class="kw">yield</span> <span class="str">f"data: {payload}\n\n"</span>
+
+    <span class="kw">return</span> StreamingResponse(
+        event_generator(),
+        media_type=<span class="str">"text/event-stream"</span>,    <span class="cm"># tells browser: this is SSE</span>
+        headers={<span class="str">"Cache-Control"</span>: <span class="str">"no-cache"</span>, <span class="str">"X-Accel-Buffering"</span>: <span class="str">"no"</span>}
+    )</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚛️ SSE in React (Frontend)</div>
+    <pre><code><span class="cm">// AgentPanel.jsx — reading the SSE stream</span>
+<span class="kw">const</span> es = <span class="kw">new</span> EventSource(
+    <span class="str">`${API_BASE}/api/agent/stream?goal=${encodeURIComponent(goal)}`</span>
+)
+
+es.onmessage = (event) => {
+    <span class="kw">const</span> step = JSON.parse(event.data)
+
+    <span class="kw">if</span> (step.type === <span class="str">'thought'</span>) {
+        setSteps(prev => [...prev, { type: <span class="str">'thought'</span>, content: step.content }])
+    }
+    <span class="kw">if</span> (step.type === <span class="str">'action'</span>) {
+        setSteps(prev => [...prev, { type: <span class="str">'action'</span>, tool: step.tool }])
+    }
+    <span class="kw">if</span> (step.type === <span class="str">'final'</span>) {
+        setResult(step.content)
+        es.close()   <span class="cm">// close connection when done</span>
+    }
+}
+
+es.onerror = () => { es.close(); setRunning(<span class="kw">false</span>) }</code></pre>
+  </div>
+
+  <h3>SSE vs WebSockets</h3>
+  <table>
+    <tr><th></th><th>SSE (used here)</th><th>WebSockets</th></tr>
+    <tr><td>Direction</td><td>Server → Client only</td><td>Both ways</td></tr>
+    <tr><td>Protocol</td><td>HTTP (simpler)</td><td>WS (more complex)</td></tr>
+    <tr><td>Auto-reconnect</td><td>Yes, built-in</td><td>No, manual</td></tr>
+    <tr><td>Best for</td><td>Live logs, progress, feeds</td><td>Chat, games, collaboration</td></tr>
+    <tr><td>Browser support</td><td>All modern browsers</td><td>All modern browsers</td></tr>
+  </table>
+  <div class="tip"><strong>Why SSE here:</strong> Agent steps are one-way (server pushes to client). SSE is simpler, uses regular HTTP, and auto-reconnects. WebSockets would be overkill.</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 10 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s10">
+  <div class="section-title"><span class="section-num">10</span> WhatsApp Bot (Twilio)</div>
+
+  <h3>How WhatsApp Bot Works</h3>
+  <div class="diagram">
+User sends WhatsApp message to +1 415 523 8886
+              │
+              ▼
+         Twilio receives it
+              │
+              ▼  HTTP POST with form data
+    POST /api/whatsapp  (your backend)
+              │
+         ┌────┴────────────────────────────────┐
+         │ Is it a simple command? (hi/help)    │
+         └────┬─────────────────────────────────┘
+              │ YES                │ NO (complex question)
+              ▼                   ▼
+     Reply inline TwiML    BackgroundTasks → rag.chat()
+     (instant &lt;2s)         Acknowledge with "Nova is thinking..."
+                           Background task sends reply via REST API
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔧 Webhook Handler</div>
+    <pre><code><span class="cm"># main.py — WhatsApp webhook</span>
+SIMPLE_COMMANDS = {<span class="str">"hi"</span>, <span class="str">"hello"</span>, <span class="str">"hey"</span>, <span class="str">"start"</span>, <span class="str">"help"</span>, <span class="str">"reset"</span>, <span class="str">"clear"</span>}
+
+<span class="kw">@</span>app.post(<span class="str">"/api/whatsapp"</span>)
+<span class="kw">async def</span> <span class="fn">whatsapp_webhook</span>(
+    background_tasks: BackgroundTasks,
+    Body: str = Form(<span class="str">""</span>),      <span class="cm"># Twilio sends form-encoded data</span>
+    From: str = Form(<span class="str">""</span>),      <span class="cm"># "whatsapp:+91XXXXXXXXXX"</span>
+):
+    normalized = Body.strip().lower()
+
+    <span class="cm"># Fast path — simple commands get instant TwiML reply</span>
+    <span class="kw">if</span> normalized <span class="kw">in</span> SIMPLE_COMMANDS:
+        reply = <span class="kw">await</span> process_message(From, Body, rag)
+        twiml = Response(
+            content=<span class="str">f'&lt;Response&gt;&lt;Message&gt;{reply}&lt;/Message&gt;&lt;/Response&gt;'</span>,
+            media_type=<span class="str">"application/xml"</span>
+        )
+        <span class="kw">return</span> twiml
+
+    <span class="cm"># Slow path — RAG query runs in background, we reply via REST API</span>
+    <span class="kw">async def</span> <span class="fn">handle_slow</span>(from_: str, body: str):
+        reply = <span class="kw">await</span> process_message(from_, body, rag)
+        send_whatsapp_message(from_, reply)   <span class="cm"># Twilio REST API</span>
+
+    background_tasks.add_task(handle_slow, From, Body)
+    ack = Response(
+        content=<span class="str">"&lt;Response&gt;&lt;Message&gt;🔍 Nova is thinking...&lt;/Message&gt;&lt;/Response&gt;"</span>,
+        media_type=<span class="str">"application/xml"</span>
+    )
+    <span class="kw">return</span> ack</code></pre>
+  </div>
+
+  <div class="tip">
+    <strong>Why two paths?</strong> Twilio requires a response within 15 seconds. RAG queries can take 10-30s. So for complex questions we immediately acknowledge ("Nova is thinking...") and send the real answer later via REST API.
+  </div>
+
+  <div class="card">
+    <div class="card-title">📝 Markdown → WhatsApp Format Converter</div>
+    <pre><code><span class="cm"># whatsapp_bot.py — _to_wa()</span>
+<span class="kw">def</span> <span class="fn">_to_wa</span>(text: str) -> str:
+    <span class="cm"># **bold** → *bold* (WhatsApp bold format)</span>
+    text = re.sub(<span class="str">r'\*\*(.+?)\*\*'</span>, <span class="str">r'*\1*'</span>, text)
+    <span class="cm"># # Heading → *Heading* (WhatsApp doesn't have headings)</span>
+    text = re.sub(<span class="str">r'^#{1,4}\s+(.+)$'</span>, <span class="str">r'*\1*'</span>, text, flags=re.MULTILINE)
+    <span class="cm"># `code` → plain text (no code formatting in WhatsApp)</span>
+    text = re.sub(<span class="str">r'`(.+?)`'</span>, <span class="str">r'\1'</span>, text)
+    <span class="cm"># Truncate at 3500 chars</span>
+    <span class="kw">if</span> len(text) > <span class="num">3500</span>:
+        text = text[:<span class="num">3497</span>] + <span class="str">"..."</span>
+    <span class="kw">return</span> text.strip()</code></pre>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 11 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s11">
+  <div class="section-title"><span class="section-num">11</span> Email Service (SMTP)</div>
+
+  <div class="card">
+    <div class="card-title">📧 How Email is Sent (email_service.py)</div>
+    <pre><code><span class="cm"># Standard Python library — no extra package needed</span>
+<span class="kw">import</span> smtplib
+<span class="kw">from</span> email.mime.multipart <span class="kw">import</span> MIMEMultipart
+<span class="kw">from</span> email.mime.text <span class="kw">import</span> MIMEText
+
+<span class="kw">def</span> <span class="fn">send_booking_confirmation</span>(to_email: str, booking: dict) -> bool:
+    msg = MIMEMultipart(<span class="str">'alternative'</span>)
+    msg[<span class="str">'Subject'</span>] = <span class="str">f"✅ Booking Confirmed — {booking['booking_id']}"</span>
+    msg[<span class="str">'From'</span>]    = GMAIL_USER
+    msg[<span class="str">'To'</span>]      = to_email
+
+    <span class="cm"># Attach HTML version (preferred by email clients)</span>
+    html_part = MIMEText(html_body, <span class="str">'html'</span>)
+    msg.attach(html_part)
+
+    <span class="cm"># Connect to Gmail's SMTP server (port 587 = TLS)</span>
+    <span class="kw">with</span> smtplib.SMTP(<span class="str">'smtp.gmail.com'</span>, <span class="num">587</span>) <span class="kw">as</span> server:
+        server.starttls()                         <span class="cm"># encrypt connection</span>
+        server.login(GMAIL_USER, GMAIL_APP_PASS)  <span class="cm"># App Password (not real pw)</span>
+        server.send_message(msg)
+    <span class="kw">return</span> <span class="kw">True</span></code></pre>
+  </div>
+
+  <div class="warn">
+    <strong>⚠️ Security note:</strong> Never use your real Gmail password. Use a Gmail App Password — a 16-character code generated at myaccount.google.com → Security → App passwords. This way even if your code leaks, your real account password is safe.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 12 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s12">
+  <div class="section-title"><span class="section-num">12</span> Data Layer — JSON + ChromaDB</div>
+
+  <h3>spaces.json Structure</h3>
+  <pre><code>{
+  <span class="str">"spaces"</span>: [
+    {
+      <span class="str">"id"</span>: <span class="str">"KOR-001"</span>,
+      <span class="str">"name"</span>: <span class="str">"Innovation Hub"</span>,
+      <span class="str">"location"</span>: <span class="str">"Koramangala"</span>,
+      <span class="str">"type"</span>: <span class="str">"conference"</span>,
+      <span class="str">"type_label"</span>: <span class="str">"Conference Room"</span>,
+      <span class="str">"capacity"</span>: <span class="num">12</span>,
+      <span class="str">"rating"</span>: <span class="num">4.8</span>,
+      <span class="str">"pricing"</span>: {
+        <span class="str">"hourly"</span>: <span class="num">1500</span>,
+        <span class="str">"half_day"</span>: <span class="num">5000</span>,
+        <span class="str">"full_day"</span>: <span class="num">9000</span>
+      },
+      <span class="str">"amenities"</span>: [<span class="str">"85-inch 4K display"</span>, <span class="str">"Zoom Room certified"</span>, ...],
+      <span class="str">"ideal_for"</span>: [<span class="str">"client meetings"</span>, <span class="str">"product demos"</span>, ...],
+      <span class="str">"description"</span>: <span class="str">"Premium conference room..."</span>
+    }
+  ]
+}</code></pre>
+
+  <h3>ChromaDB — How It's Used</h3>
+  <table>
+    <tr><th>Operation</th><th>When</th><th>What happens</th></tr>
+    <tr><td>Index spaces</td><td>App startup (once)</td><td>All space docs → embedded → stored in chroma_db/</td></tr>
+    <tr><td>Similarity search</td><td>Every chat message</td><td>Question → embedded → top-4 similar docs fetched</td></tr>
+    <tr><td>Persist</td><td>Automatic</td><td>chroma_db/ folder is saved to disk, survives restart</td></tr>
+  </table>
+
+  <div class="tip">
+    <strong>💡 Interview answer:</strong> "I chose a JSON file for space data because it's easy to update without a database migration. It's loaded into memory at startup and also indexed into ChromaDB for semantic search. For a production app, I'd move to PostgreSQL with pgvector."
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 13 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s13">
+  <div class="section-title"><span class="section-num">13</span> Key Design Patterns Used</div>
+
+  <table>
+    <tr><th>Pattern</th><th>Where Used</th><th>Why</th></tr>
+    <tr><td>Singleton</td><td>AurbisRAG instance in main.py</td><td>One RAG engine shared across all requests — expensive to init</td></tr>
+    <tr><td>Strategy</td><td>LLM fallback chain (OpenAI → Ollama → Demo)</td><td>Swap the implementation without changing calling code</td></tr>
+    <tr><td>Observer</td><td>localStorage events (aurbis_favorites_changed)</td><td>Decouple SpaceCard from SpaceExplorer</td></tr>
+    <tr><td>ReAct</td><td>AgentEngine</td><td>Reason+Act loop for multi-step AI problem solving</td></tr>
+    <tr><td>Generator/Iterator</td><td>stream_react() with yield</td><td>Produce SSE events lazily, one step at a time</td></tr>
+    <tr><td>Decorator</td><td>@app.post, @app.get in FastAPI</td><td>Declare routes cleanly without boilerplate</td></tr>
+    <tr><td>Dependency Injection</td><td>FastAPI BackgroundTasks, Form()</td><td>FastAPI injects dependencies automatically</td></tr>
+    <tr><td>Separation of Concerns</td><td>rag_engine.py / agent_engine.py / email_service.py</td><td>Each file has one clear responsibility</td></tr>
+  </table>
+
+  <h3>Async / Await Pattern</h3>
+  <pre><code><span class="cm"># Why async? FastAPI is async-first (built on Starlette/anyio)</span>
+<span class="cm"># Async lets one thread handle hundreds of requests simultaneously</span>
+
+<span class="cm"># Regular (sync) — one request blocks the whole server:</span>
+<span class="kw">def</span> <span class="fn">slow_function</span>():
+    time.sleep(<span class="num">10</span>)  <span class="cm"># BLOCKS everything else!</span>
+    <span class="kw">return</span> result
+
+<span class="cm"># Async — other requests handled while waiting:</span>
+<span class="kw">async def</span> <span class="fn">fast_function</span>():
+    <span class="kw">await</span> asyncio.sleep(<span class="num">10</span>)  <span class="cm"># releases CPU to handle other requests</span>
+    <span class="kw">return</span> result</code></pre>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 14 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s14">
+  <div class="section-title"><span class="section-num">14</span> 50 Interview Questions &amp; Answers</div>
+
+  <h3>🤖 AI / LLM Questions</h3>
+
+  <div class="qa">
+    <div class="q">What is RAG and why did you use it instead of fine-tuning?</div>
+    <div class="a">RAG (Retrieval-Augmented Generation) fetches relevant documents at query time and gives them to the LLM as context. I used it instead of fine-tuning because: (1) our data changes often (new spaces, prices), (2) RAG is cheaper — no GPU training, (3) it reduces hallucinations since the LLM answers from real documents, (4) I can update the knowledge base by just updating ChromaDB, no retraining needed.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">Explain vector embeddings in simple terms.</div>
+    <div class="a">A vector embedding converts text into a list of numbers that captures its meaning. Similar sentences produce similar numbers. This lets us do "meaning-based search" — searching for "quiet workspace" finds "silent private office" even without exact word matches. The model (like OpenAI's text-embedding-3-small) was trained on billions of text examples to learn these number representations.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is cosine similarity and how is it used in your project?</div>
+    <div class="a">Cosine similarity measures the angle between two vectors. If angle = 0°, they're identical (similarity = 1.0). If angle = 90°, they're unrelated (similarity = 0). ChromaDB uses it to find the most relevant space descriptions for a user's question. The formula is: cos(θ) = (A·B) / (|A|×|B|). It's preferred over Euclidean distance because it's not affected by vector length — only direction (meaning) matters.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is the ReAct pattern in AI agents?</div>
+    <div class="a">ReAct stands for Reason + Act. The LLM alternates between two steps: (1) Thought — it explains what it needs to do next; (2) Action — it calls a tool with specific parameters. After each Action, it gets an Observation (the tool result) and thinks again. This loop continues until it has enough information to give a Final Answer. It's like how a human would solve a problem step-by-step rather than guessing everything at once.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is self-healing in your RAG system?</div>
+    <div class="a">Self-healing means the system detects when its own answer is low-quality and automatically retries. We score the answer: if it contains phrases like "I don't know" or "not available" and lacks specific data like prices or space names, confidence drops below 0.4. We then reformulate the query by adding more context ("In the context of Aurbis workspace booking in Bangalore: ...") and call the RAG pipeline again. The improved query retrieves better documents and produces a better answer.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How does your LLM fallback chain work?</div>
+    <div class="a">The AurbisRAG class tries three modes in order: (1) OpenAI (gpt-4o-mini) — best quality; (2) Ollama (llama3) — free, runs locally; (3) DemoRAG — pure keyword matching, no LLM needed. Each is wrapped in a try/except. If OpenAI API key is invalid or quota exceeded, it falls to Ollama. If Ollama isn't running, it falls to Demo mode. The app always works, even offline.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is ChromaDB and why use it over a regular database?</div>
+    <div class="a">ChromaDB is a vector database — it stores text embeddings (number vectors) and supports fast similarity search. A regular SQL database can't do semantic search — it can only match exact strings. ChromaDB stores each document as a vector and finds the k nearest vectors to a query vector. I chose ChromaDB because it's free, local (no cloud needed), file-based (just a folder), and supports the same API as Pinecone/Weaviate for easy future migration.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is hallucination in LLMs and how does your project prevent it?</div>
+    <div class="a">Hallucination is when an LLM confidently states false information that it invented. In our project, we prevent it with RAG: instead of asking the LLM to recall information from training data, we retrieve actual space data from ChromaDB and inject it into the prompt. The LLM is instructed to answer only based on the provided context. Additionally, the system prompt explicitly says "Never say a space is confirmed unless the booking workflow completes."</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is prompt engineering? How did you use it?</div>
+    <div class="a">Prompt engineering is crafting the input text to the LLM to get better outputs. In this project: (1) System prompt defines Nova's personality and rules; (2) Context injection adds relevant space data to every query; (3) REACT_SYSTEM prompt enforces strict output format "Thought: ... Action: ..." for the agent; (4) DECOMPOSE_PROMPT instructs the LLM to output only valid JSON; (5) Format instructions tell the LLM to use bullet points and mention prices clearly.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What's the difference between Ollama and OpenAI?</div>
+    <div class="a">OpenAI is a cloud API — you send your text to OpenAI's servers, pay per token, and get back a response. Ollama runs an LLM locally on your own machine — completely free, private (data never leaves your computer), but requires hardware (RAM/GPU). In this project, Ollama (llama3) is the primary option for cost and privacy; OpenAI (gpt-4o-mini) is the fallback for quality when needed.</div>
+  </div>
+
+  <h3>⚙️ Backend / FastAPI Questions</h3>
+
+  <div class="qa">
+    <div class="q">Why FastAPI over Flask or Django?</div>
+    <div class="a">FastAPI is async-first (built on Starlette), which is perfect for AI workloads that do lots of I/O (API calls, database queries). It auto-generates Swagger docs from type hints. Pydantic models validate request/response data automatically. It's 2-3x faster than Flask in benchmarks. Django is too heavy for an API-only backend.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is async/await and why does it matter here?</div>
+    <div class="a">Async/await is Python's way of writing non-blocking code. When an async function awaits something (like an API call), it releases the CPU to handle other requests instead of just waiting. This matters here because LLM calls take 2-10 seconds. With sync code, 10 simultaneous users would queue up. With async, FastAPI handles all 10 simultaneously on one thread — much more efficient.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is CORS and why did you need it?</div>
+    <div class="a">CORS (Cross-Origin Resource Sharing) is a browser security policy that blocks JavaScript from calling a different origin (domain + port). Since React runs on port 5173 and FastAPI on port 8000, the browser treats them as different origins. The CORSMiddleware in main.py adds response headers telling the browser it's safe to allow these cross-origin requests.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">Explain Pydantic models in your project.</div>
+    <div class="a">Pydantic models define the expected structure of request and response data. FastAPI uses them for automatic validation. If a POST to /api/chat comes in without a "message" field, FastAPI automatically returns a 422 Unprocessable Entity error. Models like BookingRequest define all booking fields with types — this prevents invalid data from ever reaching our business logic.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is Server-Sent Events (SSE) and why did you choose it over WebSockets?</div>
+    <div class="a">SSE is a one-way HTTP streaming protocol where the server sends continuous updates to the client. I chose it for the agent stream because: (1) Agent steps are one-way (server → client only); (2) SSE uses regular HTTP — simpler setup, no protocol upgrade; (3) Built-in browser auto-reconnect; (4) EventSource API is simpler than WebSocket API. WebSockets would be needed if the client also needed to send mid-stream messages.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How does the WhatsApp integration work technically?</div>
+    <div class="a">Twilio provides a WhatsApp sandbox. When a user messages the Twilio number, Twilio makes an HTTP POST to our /api/whatsapp endpoint with form-encoded data (Body, From fields). Our handler uses a two-path system: simple commands (hi/help) reply inline with TwiML XML within the 15-second timeout. Complex RAG queries use FastAPI BackgroundTasks — we immediately return an acknowledgment TwiML, then the background task processes the query and sends the reply via Twilio REST API.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How does the email service work? Why App Password?</div>
+    <div class="a">Python's smtplib connects to Gmail's SMTP server (port 587, TLS). We login with GMAIL_USER and GMAIL_APP_PASSWORD. A Gmail App Password is a 16-character code that allows third-party apps to access Gmail without your real password. It's scoped — if it leaks, the attacker can only send emails, not access your full account. We use MIMEMultipart to send HTML-formatted emails.</div>
+  </div>
+
+  <h3>⚛️ Frontend / React Questions</h3>
+
+  <div class="qa">
+    <div class="q">Explain useState vs useRef in your project.</div>
+    <div class="a">useState stores values that, when changed, cause the component to re-render. For example, messages state updates cause the chat to show new messages. useRef stores a value that persists across renders but doesn't trigger re-renders — used for the messagesEndRef DOM reference (scroll to bottom). Rule of thumb: if the change needs to show in the UI, use useState. If it's just a reference or counter, use useRef.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How does React component communication work in your project?</div>
+    <div class="a">Parent-to-child: props (App.jsx passes onSwitchMode callback to AIShowcase). Child-to-parent: callback props (AIShowcase calls onSwitchMode when button clicked, App.jsx handles it). Cross-component: custom events + localStorage (SpaceCard.jsx dispatches 'aurbis_favorites_changed' event; SpaceExplorer.jsx listens for it and refreshes its state). This avoids prop drilling and global state management for simple cross-component updates.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">Why useMemo for the WhatsApp URL?</div>
+    <div class="a">The WhatsApp URL is computed from goal + result, which can be long strings. Without useMemo, it recalculates on every render — even if goal and result haven't changed. useMemo caches the computed value and only recalculates when the dependencies (goal, result) change. For expensive computations or large string operations, this improves performance.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How did you implement the real QR code?</div>
+    <div class="a">Rather than adding a QR library, I used the free qrserver.com API: &lt;img src="https://api.qrserver.com/v1/create-qr-code/?size=96x96&data={bookingId}&bgcolor=ffffff&color=000000" /&gt;. The bookingId is encoded in the URL. This is a good trade-off — no library bundle size increase, no maintenance, and the service is reliable for this use case.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">Why localStorage for favorites and booking history?</div>
+    <div class="a">LocalStorage is perfect for user-preference data that: (1) doesn't need server storage, (2) should persist across page refreshes, (3) is device-specific (not synced). Favorites and booking history are exactly this kind of data. The cross-component sync is handled with a custom window event (aurbis_favorites_changed) — when SpaceCard saves to localStorage, it fires the event, and SpaceExplorer listens and updates its count badge.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is Vite and why use it instead of Create React App?</div>
+    <div class="a">Vite is a modern frontend build tool. It uses native ES modules in development, so hot module replacement (HMR) is near-instant (under 50ms) compared to CRA's 5-30 second rebuild. Production builds use Rollup for optimized bundles. Vite is the current industry standard for React apps — CRA is officially deprecated.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How does the toast success notification work technically?</div>
+    <div class="a">I added a showSuccessToast boolean state. When the email API call succeeds, we setToast(true) and schedule setTimeout(() => setToast(false), 3500). The toast is a fixed-position div with CSS transition on transform and opacity. When toast=false, it's translated to translateY(-80px) and opacity 0 (off-screen). When toast=true, it snaps to translateY(0) and opacity 1 with a spring cubic-bezier animation.</div>
+  </div>
+
+  <h3>🏗️ Architecture Questions</h3>
+
+  <div class="qa">
+    <div class="q">How is the session/conversation history maintained?</div>
+    <div class="a">Each chat session has a UUID. The backend stores conversation history in memory (a Python dict keyed by session_id). Each message adds to that session's history. When the RAG prompt is built, history is formatted and injected into the prompt so the LLM has context of previous messages. The session_id is generated on the frontend and sent with every message.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What happens if the LLM call fails mid-stream in the Agent?</div>
+    <div class="a">The agent is wrapped in try/except. If the LLM call throws, the generator yields a final error step: {"type":"error","content":"Agent encountered an error: ..."}. The frontend's es.onerror closes the EventSource and sets running=false. The user sees an error state in the agent panel rather than a hung spinner.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How does the booking flow work end-to-end?</div>
+    <div class="a">1. User chats with Nova (RAG) to find a space. 2. Nova asks for details (name, email, date, time, attendees) through conversation. 3. RAG engine detects all details are collected and returns booking_confirmed=true + booking_details. 4. Frontend shows booking confirmation with a QR code and celebration animation. 5. User can opt to confirm via POST /api/book. 6. Backend generates a booking ID, saves to booking history, sends confirmation email via Gmail SMTP. 7. Email contains the QR code, booking ID, and space details.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How would you scale this to production?</div>
+    <div class="a">I'd make these changes: (1) Replace in-memory session store with Redis for distributed sessions; (2) Replace ChromaDB local files with Pinecone or pgvector for cloud vector storage; (3) Replace JSON file with PostgreSQL for space data; (4) Add authentication (JWT); (5) Use a CDN for the React app; (6) Containerize with Docker; (7) Add rate limiting (FastAPI + slowapi); (8) Restrict CORS to specific domains; (9) Use a job queue (Celery) for email/background tasks instead of BackgroundTasks.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What security considerations did you address?</div>
+    <div class="a">1. API keys in .env, never in code or git (in .gitignore); 2. Gmail App Password instead of real password; 3. ast.literal_eval for safe parsing of LLM-generated tool arguments (prevents code injection); 4. CORS middleware; 5. Pydantic validation on all inputs; 6. Twilio webhook handled with form data (not raw JSON) as Twilio specifies; 7. WhatsApp message truncated to 3500 chars to prevent oversized payloads.</div>
+  </div>
+
+  <h3>💡 Conceptual / Explain-It Questions</h3>
+
+  <div class="qa">
+    <div class="q">What is LangChain and what does it do in your project?</div>
+    <div class="a">LangChain is a Python library that provides building blocks for LLM applications. In this project it handles: (1) RecursiveCharacterTextSplitter — splits long space descriptions into chunks; (2) Document class — wraps text with metadata; (3) OpenAIEmbeddings / OllamaEmbeddings — converts text to vectors; (4) Chroma vectorstore — stores/queries ChromaDB; (5) Retriever abstraction — unified interface to search docs. Without LangChain, I'd have to write all of this from scratch.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is a text chunk and why is overlap important?</div>
+    <div class="a">A chunk is a piece of a document, typically 500-1000 characters. We split documents into chunks because LLMs have context limits and ChromaDB searches work better on focused pieces. Overlap (e.g., 50 chars) means the last 50 characters of chunk N are the first 50 of chunk N+1. This ensures that if a key fact spans a chunk boundary, it appears complete in at least one chunk and won't be missed during retrieval.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is the Demo mode and why did you build it?</div>
+    <div class="a">DemoRAG is a pure keyword-based response system that requires no LLM at all. It uses if/elif matching on keywords like "conference", "koramangala", "pricing". I built it so the app works in three scenarios: no API keys, no internet, or Ollama not installed. It also makes demos more predictable — if I'm presenting and Ollama is slow, Demo mode gives instant responses. It's a graceful degradation pattern.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">Explain the extract_capacity() function. Why use regex?</div>
+    <div class="a">_extract_capacity() scans natural language for any mention of a number of people. Users say things 10 different ways: "for 5 people", "team of 10", "15 attendees", "20-seater". Regex handles all these patterns: r'\bfor\s+(\d+)\b', r'(\d+)\s*(?:people|persons|pax)', etc. Using regex is much more robust than splitting on spaces or looking for exact phrases. The function tries multiple patterns and returns the first valid match (1-500 range).</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is a typo-tolerant date extractor and how did you implement it?</div>
+    <div class="a">_extract_date() handles common misspellings of "tomorrow": tommrow, tomorow, tmrw, tmr, tomo, tomarrow — all checked against a list. This was built from real user behavior data where people typing on mobile frequently misspell "tomorrow". The function also handles: "today/tonight/tdy", day names (Monday-Sunday), and date formats like "15 July" or "15/07". This makes the booking flow feel natural instead of failing on common typos.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How does the agent prevent infinite loops?</div>
+    <div class="a">Two mechanisms: (1) A max_steps counter — after 5 tool calls, the agent stops and gives its best Final Answer even if not complete. (2) The REACT_SYSTEM prompt explicitly says "Maximum 5 tool calls. After 5, give your best Final Answer." This prevents a runaway agent that keeps calling tools forever, which would be expensive and slow.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is TwiML and how does it work?</div>
+    <div class="a">TwiML (Twilio Markup Language) is XML that tells Twilio what to do in response to a webhook. When our FastAPI endpoint returns &lt;Response&gt;&lt;Message&gt;Hello!&lt;/Message&gt;&lt;/Response&gt;, Twilio reads this XML and sends that text as a WhatsApp message to the user. It's like an instruction set for Twilio's messaging infrastructure. We set the Content-Type to "application/xml" so Twilio parses it correctly.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How does the Space Explorer filtering work?</div>
+    <div class="a">SpaceExplorer.jsx maintains local filter state: location, type, price range, favorites toggle. It fetches all spaces from GET /api/spaces once, then filters client-side using JavaScript array methods: spaces.filter(s => !location || s.location === location).filter(s => s.pricing.hourly <= maxPrice). This is better for a small dataset (41 spaces) because it's instant and avoids a network request per filter change.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What is the singleton pattern and where is it used?</div>
+    <div class="a">A singleton ensures only one instance of a class is created. In main.py, `rag = AurbisRAG()` is called once at startup — not inside the route handlers. This is critical because AurbisRAG initialization loads ChromaDB, initializes the LLM client, and builds the retriever — expensive operations. If we created a new AurbisRAG per request, startup would take 2-5 seconds per call. The singleton is shared across all requests.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How would you add authentication to this project?</div>
+    <div class="a">I'd add JWT (JSON Web Token) authentication: (1) Add a POST /auth/login endpoint that returns a signed JWT; (2) Add a dependency function that verifies the JWT from the Authorization header; (3) Protect routes with `Depends(get_current_user)`. On the frontend, store the JWT in an httpOnly cookie (not localStorage, to prevent XSS). FastAPI makes this easy with the `python-jose` library and OAuth2PasswordBearer scheme.</div>
+  </div>
+
+  <h3>🎯 Behavioral / Story Questions</h3>
+
+  <div class="qa">
+    <div class="q">Tell me about a technical challenge you solved in this project.</div>
+    <div class="a">The biggest challenge was the Twilio 15-second webhook timeout. My RAG + LLM pipeline takes 10-30 seconds. If I made Twilio wait, it would throw a 15002 error and the user gets nothing. I solved this with a two-path architecture: simple commands (hi/help/reset) get an instant TwiML response. Complex questions get an immediate "Nova is thinking..." acknowledgment, while a FastAPI BackgroundTask runs the RAG query and sends the actual reply via Twilio REST API. This decouples the webhook response time from LLM processing time.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">What would you do differently if starting over?</div>
+    <div class="a">Three things: (1) Use LangChain's ConversationChain instead of manually managing session history — it handles context window limits better; (2) Use pgvector in PostgreSQL instead of ChromaDB — one fewer service, better for production; (3) Add a proper job queue (Celery + Redis) from the start instead of FastAPI BackgroundTasks — more reliable, with retry logic and monitoring.</div>
+  </div>
+
+  <div class="qa">
+    <div class="q">How did you ensure the AI doesn't confirm a fake booking?</div>
+    <div class="a">The system prompt includes a critical instruction: "Never say a space is booked, confirmed, reserved, or all set from RAG context alone. A real booking is confirmed only by the backend booking workflow after the user says yes on the final summary." The actual booking (POST /api/book) is separate from the chat. The frontend only calls that endpoint when the user explicitly confirms. This is a "human in the loop" design — the AI assists but the final confirmation is a real system action.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 15 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="section" id="s15">
+  <div class="section-title"><span class="section-num">15</span> How to Explain the Project (Story Format)</div>
+
+  <div class="card">
+    <div class="card-title">🎤 Opening (30 seconds)</div>
+    <p>"I built Aurbis Nova — an AI workspace booking assistant for Bangalore. Think of it like a smart concierge that understands natural language, finds the right space from 41 options across 13 areas, and guides users through booking via chat, email, or WhatsApp."</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🧠 The AI Part (45 seconds)</div>
+    <p>"The core is a RAG system — Retrieval-Augmented Generation. Instead of asking an LLM to guess from memory, I store all space data as vector embeddings in ChromaDB. When a user asks a question, I find the most relevant spaces using cosine similarity, inject them into the LLM prompt, and get a grounded, accurate answer. I also built a ReAct agent for complex multi-step requests — it calls tools like search_spaces, calculate_price, and compare_spaces in a reasoning loop. Plus a self-healing layer that detects low-confidence answers and retries with better queries."</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔧 The Tech Part (30 seconds)</div>
+    <p>"Backend is FastAPI with async Python. Frontend is React 18 + Vite with real-time agent updates via Server-Sent Events. It has a 3-tier LLM fallback: OpenAI → Ollama → Demo mode, so it always works even without API keys. I integrated Twilio for WhatsApp and Gmail SMTP for email confirmations."</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💡 The Hard Part (30 seconds — choose one depending on interviewer)</div>
+    <p><strong>For AI interviewers:</strong> "The most interesting technical challenge was building the self-healing RAG — detecting low confidence with heuristic scoring, then automatically reformulating the query to improve retrieval quality without any human intervention."</p>
+    <p><strong>For backend interviewers:</strong> "The hardest part was solving the Twilio 15-second timeout with a two-path webhook architecture — instant TwiML for simple commands, async BackgroundTask + REST API reply for RAG queries."</p>
+    <p><strong>For frontend interviewers:</strong> "The agent mode UI was interesting — streaming ReAct steps via SSE and updating the UI in real-time as each Thought/Action/Observation arrives, while managing multiple state slices for tasks, steps, and final results."</p>
+  </div>
+
+  <div class="success">
+    <strong>✅ Strong closing line:</strong> "What I'm proud of is that this is a production-grade AI system, not just an OpenAI API wrapper. I built RAG from scratch with LangChain and ChromaDB, implemented a real ReAct agent loop, designed graceful fallbacks, and integrated real external services — email, WhatsApp, QR codes."
+  </div>
+
+  <h3>Keywords to Drop Naturally</h3>
+  <div style="margin-top:10px;">
+    <span class="concept">RAG</span>
+    <span class="concept">LangChain</span>
+    <span class="concept">ChromaDB</span>
+    <span class="concept">Vector Embeddings</span>
+    <span class="concept">Cosine Similarity</span>
+    <span class="concept">ReAct Pattern</span>
+    <span class="concept">Self-Healing</span>
+    <span class="concept">SSE Streaming</span>
+    <span class="concept">FastAPI async</span>
+    <span class="concept">Pydantic</span>
+    <span class="concept">Twilio Webhook</span>
+    <span class="concept">BackgroundTasks</span>
+    <span class="concept">CORS Middleware</span>
+    <span class="concept">Singleton Pattern</span>
+    <span class="concept">Fallback Chain</span>
+    <span class="concept">Prompt Engineering</span>
+    <span class="concept">Semantic Search</span>
+    <span class="concept">Hallucination Prevention</span>
+    <span class="concept">useEffect</span>
+    <span class="concept">useMemo</span>
+    <span class="concept">LocalStorage</span>
+    <span class="concept">Custom Events</span>
+    <span class="concept">Ollama</span>
+    <span class="concept">SMTP TLS</span>
+  </div>
+</div>
+
+<div class="footer">
+  <p>Aurbis Nova — Interview Prep Guide &nbsp;·&nbsp; Built by Surya Prakash &nbsp;·&nbsp; Aurbis.git / branch main</p>
+  <p style="margin-top:6px;">Prepared 2 July 2026 &nbsp;·&nbsp; All code examples are from the actual codebase</p>
+</div>
+
+</div>
+</body>
+</html>
