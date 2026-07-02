@@ -374,6 +374,7 @@ class AurbisRAG:
         self.session_histories: dict = {}
         self.booking_sessions: dict = {}
         self.last_bookings: dict = {}   # remembers last confirmed booking per session
+        self.spaces_catalog = self._load_spaces_catalog()
         self.demo = DemoRAG()
         self.use_rag = False
         self.rag_backend = "demo"
@@ -437,6 +438,207 @@ class AurbisRAG:
             if any(p in msg_lower for p in patterns):
                 return val
         return None
+
+    def _load_spaces_catalog(self) -> list[dict]:
+        try:
+            with open(DATA_DIR / "spaces.json") as f:
+                return json.load(f).get("spaces", [])
+        except Exception:
+            return []
+
+    def _booking_type_label(self, type_key: str) -> str:
+        return {
+            'conference': 'Conference Room',
+            'event': 'Event Space',
+            'office': 'Private Office',
+            'desk': 'Hot Desk',
+        }.get(type_key, type_key or 'Space')
+
+    def _extract_booking_type(self, msg: str) -> Optional[str]:
+        text = msg.lower()
+        if any(w in text for w in ['conference', 'meeting', 'boardroom', 'scrum', 'sprint room', 'vault']) or re.search(r'\broom\b', text):
+            return 'conference'
+        if any(w in text for w in ['event', 'hall', 'venue', 'auditorium', 'launch', 'community hall']):
+            return 'event'
+        if any(w in text for w in ['office', 'private', 'cabin', 'suite', 'pod']):
+            return 'office'
+        if any(w in text for w in ['desk', 'hot desk', 'cowork', 'startup den', 'accelerator']):
+            return 'desk'
+        return None
+
+    def _space_to_booking_type(self, space: dict) -> str:
+        text = f"{space.get('type', '')} {space.get('type_label', '')} {space.get('name', '')}".lower()
+        capacity = space.get('capacity') or 0
+        if 'private' in text or 'office' in text or 'cabin' in text:
+            return 'office'
+        if 'desk' in text or 'cowork' in text or 'accelerator' in text:
+            return 'desk'
+        if 'event' in text or 'hall' in text or 'auditorium' in text or 'venue' in text or capacity >= 60:
+            return 'event'
+        return 'conference'
+
+    def _price_label(self, space: dict) -> str:
+        hourly = (space.get('pricing') or {}).get('hourly')
+        return f"₹{hourly:,}/hr" if hourly else "Price on request"
+
+    def _manual_booking_options(self, cap: int = 0) -> dict:
+        def option(space_id, space_name, location, space_type, price):
+            return {
+                'space_id': space_id,
+                'space_name': space_name,
+                'location': location,
+                'space_type': space_type,
+                'price': price,
+            }
+        return {
+            'koramangala_conference': option('KOR-002', 'The Boardroom', 'Koramangala', 'conference', '₹2,000/hr') if cap <= 8 else option('KOR-001', 'Innovation Hub', 'Koramangala', 'conference', '₹1,500/hr'),
+            'koramangala_event':      option('KOR-004', 'Sky Deck', 'Koramangala', 'event', '₹15,000/hr'),
+            'koramangala_office':     option('KOR-002', 'The Boardroom', 'Koramangala', 'office', '₹2,000/hr'),
+            'koramangala_desk':       option('KOR-005', 'Creative Studio', 'Koramangala', 'desk', '₹350/hr'),
+            'whitefield_conference':  option('WHI-003', 'Focus Pod', 'Whitefield', 'conference', '₹600/hr') if cap and cap <= 4 else option('WHI-002', 'Sprint Room', 'Whitefield', 'conference', '₹1,200/hr'),
+            'whitefield_office':      option('WHI-003', 'Focus Pod', 'Whitefield', 'office', '₹600/hr'),
+            'whitefield_event':       option('WHI-001', 'Tech Hub', 'Whitefield', 'event', '₹5,000/hr'),
+            'mg road_conference':     option('MGR-003', 'Think Tank', 'MG Road', 'conference', '₹2,500/hr'),
+            'mg road_event':          option('MGR-002', 'Grand Hall', 'MG Road', 'event', '₹25,000/hr'),
+            'mg road_office':         option('MGR-001', 'Executive Suite', 'MG Road', 'office', '₹3,000/hr'),
+            'indiranagar_conference': option('IND-001', 'The Gallery', 'Indiranagar', 'conference', '₹1,000/hr'),
+            'indiranagar_desk':       option('IND-002', 'Open Canvas', 'Indiranagar', 'desk', '₹250/hr'),
+            'hsr layout_conference':  option('HSR-001', 'The Vault', 'HSR Layout', 'conference', '₹1,500/hr'),
+            'hsr layout_desk':        option('HSR-003', 'Startup Den', 'HSR Layout', 'desk', '₹300/hr'),
+            'hsr layout_event':       option('HSR-002', 'Community Hall', 'HSR Layout', 'event', '₹2,000/hr'),
+        }
+
+    def _get_booking_option(self, location: str, space_type: str, cap: int = 0, preferred_space_id: Optional[str] = None) -> Optional[dict]:
+        location_key = (location or '').lower()
+        if preferred_space_id:
+            for option in self._manual_booking_options(cap).values():
+                if option['space_id'] == preferred_space_id:
+                    return option
+            for space in self.spaces_catalog:
+                if space.get('id') == preferred_space_id:
+                    return {
+                        'space_id': space.get('id'),
+                        'space_name': space.get('name'),
+                        'location': space.get('location'),
+                        'space_type': self._space_to_booking_type(space),
+                        'price': self._price_label(space),
+                    }
+
+        manual = self._manual_booking_options(cap).get(f"{location_key}_{space_type}")
+        if manual:
+            return manual
+
+        candidates = []
+        for space in self.spaces_catalog:
+            if (space.get('location') or '').lower() != location_key:
+                continue
+            if self._space_to_booking_type(space) != space_type:
+                continue
+            capacity = space.get('capacity') or 0
+            if cap and capacity < cap:
+                continue
+            candidates.append(space)
+
+        if not candidates:
+            return None
+        candidates.sort(key=lambda s: ((s.get('capacity') or 999) - cap if cap else 0, -float(s.get('rating') or 0)))
+        selected = candidates[0]
+        return {
+            'space_id': selected.get('id'),
+            'space_name': selected.get('name'),
+            'location': selected.get('location'),
+            'space_type': self._space_to_booking_type(selected),
+            'price': self._price_label(selected),
+        }
+
+    def _available_booking_types(self, location: str, cap: int = 0) -> list[str]:
+        available = []
+        for type_key in ['conference', 'desk', 'event', 'office']:
+            if self._get_booking_option(location, type_key, cap):
+                available.append(type_key)
+        return available
+
+    def _extract_space_option(self, msg: str, cap: int = 0) -> Optional[dict]:
+        def normalize(text: str) -> str:
+            return re.sub(r'\s+', ' ', re.sub(r'[^a-z0-9]+', ' ', text.lower())).strip()
+
+        normalized_msg = f" {normalize(msg)} "
+        options = list(self._manual_booking_options(cap).values())
+        seen = {option['space_id'] for option in options}
+        for space in self.spaces_catalog:
+            if space.get('id') in seen:
+                continue
+            options.append({
+                'space_id': space.get('id'),
+                'space_name': space.get('name'),
+                'location': space.get('location'),
+                'space_type': self._space_to_booking_type(space),
+                'price': self._price_label(space),
+            })
+        options.sort(key=lambda option: len(option['space_name'] or ''), reverse=True)
+        for option in options:
+            name = normalize(option.get('space_name') or '')
+            if name and f" {name} " in normalized_msg:
+                return option
+        return None
+
+    def _apply_booking_updates_from_message(self, booking: dict, message: str) -> bool:
+        changed = False
+        cap = booking.get('capacity') or 0
+        requested_location = self._extract_location(message)
+        requested_space = self._extract_space_option(message, cap)
+        requested_type = self._extract_booking_type(message)
+        requested_date = _extract_date(message)
+        requested_time = self._extract_time(message)
+        requested_capacity = _extract_capacity(message)
+        requested_email = _extract_email(message)
+
+        if requested_location:
+            booking['location'] = requested_location
+            preferred_space_id = booking.get('_preferred_space_id')
+            if preferred_space_id:
+                preferred = self._get_booking_option('', '', cap, preferred_space_id)
+                if preferred and (preferred.get('location') or '').lower() != requested_location.lower():
+                    booking.pop('_preferred_space_id', None)
+            changed = True
+        if requested_capacity:
+            booking['capacity'] = requested_capacity
+            cap = requested_capacity
+            changed = True
+        if requested_date:
+            booking['date'] = requested_date
+            changed = True
+        if requested_time:
+            booking['time'] = requested_time
+            changed = True
+        if requested_email:
+            booking['email'] = requested_email
+            changed = True
+
+        if requested_space:
+            booking['space_type'] = requested_space['space_type']
+            if requested_location and requested_location.lower() != (requested_space.get('location') or '').lower():
+                replacement = self._get_booking_option(requested_location, requested_space['space_type'], cap)
+                if replacement:
+                    booking.pop('_preferred_space_id', None)
+                    booking['_space_correction'] = (
+                        f"{requested_space['space_name']} is in {requested_space['location']}; "
+                        f"for {requested_location}, I selected {replacement['space_name']} instead."
+                    )
+                else:
+                    booking['_space_correction'] = f"{requested_space['space_name']} is in {requested_space['location']}, not {requested_location}."
+            else:
+                booking['location'] = requested_space['location']
+                booking['_preferred_space_id'] = requested_space['space_id']
+                booking.pop('_space_correction', None)
+            changed = True
+        elif requested_type:
+            booking['space_type'] = requested_type
+            booking.pop('_preferred_space_id', None)
+            booking.pop('_space_correction', None)
+            changed = True
+
+        return changed
 
     def _handle_booking_flow(self, session_id: str, message: str, history: list) -> Optional[dict]:
         """Multi-step conversational booking. Returns response dict or None to fall through."""
@@ -534,6 +736,10 @@ class AurbisRAG:
             if corrected:
                 booking['name'] = corrected
 
+        message_updated_booking = False
+        if step != 'awaiting_name':
+            message_updated_booking = self._apply_booking_updates_from_message(booking, message)
+
         if step == 'awaiting_name':
             # Self-reference phrases mean "use the name I already gave you"
             is_self_ref = bool(re.search(
@@ -601,6 +807,30 @@ class AurbisRAG:
                     booking['location'] = 'Koramangala'
                     booking['_loc_auto'] = True
 
+        elif step == 'awaiting_alternative':
+            available_types = booking.get('_available_types') or self._available_booking_types(
+                booking.get('location'), booking.get('capacity') or 0
+            )
+            selected_type = booking.get('space_type') if message_updated_booking else self._extract_booking_type(message)
+            if not selected_type and any(w in msg for w in [
+                'yes', 'sure', 'ok', 'okay', 'fine', 'go ahead', 'book it', 'proceed',
+                'whatever', 'wharever', 'what ever', 'works', 'any', 'you choose', 'you pick'
+            ]):
+                selected_type = available_types[0] if available_types else None
+
+            if selected_type in available_types:
+                booking['space_type'] = selected_type
+                booking.pop('_available_types', None)
+                booking['step'] = 'start'
+            else:
+                readable = ', '.join(self._booking_type_label(t) for t in available_types) or 'another available space'
+                return {
+                    "answer": f"I can switch it, but that option is not available in **{booking.get('location', 'this location')}**. Pick one of these: **{readable}**.",
+                    "sources": [],
+                    "mode": self.rag_backend,
+                    "suggested_spaces": []
+                }
+
         elif step == 'awaiting_datetime':
             t = self._extract_time(message)
             if t: booking['time'] = t
@@ -631,42 +861,27 @@ class AurbisRAG:
                 loc_key = (booking.get('location') or 'koramangala').lower()
                 type_key = booking.get('space_type') or 'conference'
                 cap = booking.get('capacity') or 0
-
-                # Capacity-aware space map
-                space_map = {
-                    'koramangala_conference': ('KOR-002', 'The Boardroom', '₹2,000/hr') if cap <= 8 else ('KOR-001', 'Innovation Hub', '₹1,500/hr'),
-                    'koramangala_event':      ('KOR-004', 'Sky Deck', '₹15,000/hr'),
-                    'koramangala_office':     ('KOR-002', 'The Boardroom', '₹2,000/hr'),
-                    'koramangala_desk':       ('KOR-005', 'Creative Studio', '₹350/hr'),
-                    'whitefield_conference':  ('WHI-003', 'Focus Pod', '₹600/hr') if cap <= 4 else ('WHI-002', 'Sprint Room', '₹1,200/hr'),
-                    'whitefield_office':      ('WHI-003', 'Focus Pod', '₹600/hr'),
-                    'whitefield_event':       ('WHI-001', 'Tech Hub', '₹5,000/hr'),
-                    'mg road_conference':     ('MGR-003', 'Think Tank', '₹2,500/hr'),
-                    'mg road_event':          ('MGR-002', 'Grand Hall', '₹25,000/hr'),
-                    'mg road_office':         ('MGR-001', 'Executive Suite', '₹3,000/hr'),
-                    'indiranagar_conference': ('IND-001', 'Creative Hub', '₹1,200/hr'),
-                    'indiranagar_desk':       ('IND-002', 'Open Canvas', '₹250/hr'),
-                    'hsr layout_conference':  ('HSR-001', 'The Vault', '₹1,500/hr'),
-                    'hsr layout_desk':        ('HSR-003', 'Startup Den', '₹300/hr'),
-                    'hsr layout_event':       ('HSR-002', 'Community Hall', '₹2,000/hr'),
-                }
-                combo = f"{loc_key}_{type_key}"
-                if combo not in space_map:
-                    type_labels_map = {'conference': 'Conference Room', 'event': 'Event Space', 'office': 'Private Office', 'desk': 'Hot Desk'}
-                    avail_types = [t.split('_', 1)[1] for t in space_map.keys() if t.startswith(loc_key + '_')]
-                    loc_display_early = booking.get('location') or loc_key.title()
-                    type_display_early = type_labels_map.get(type_key, type_key)
-                    if avail_types:
-                        readable = ', '.join(type_labels_map.get(t, t) for t in avail_types)
-                        return {"answer": f"Sorry, we don't have a **{type_display_early}** in **{loc_display_early}**.\n\nAvailable there: **{readable}**. Want me to book one of those instead?", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
-                    else:
-                        return {"answer": f"Sorry, we don't have any spaces in **{loc_display_early}** yet.", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
-                space_id, space_name, price = space_map[combo]
                 name = booking.get('name') or 'Guest'
                 date = booking.get('date') or 'Today'
                 time_val = booking.get('time') or '11:00 PM'
                 loc_display = booking.get('location') or 'Koramangala'
                 user_email = booking.get('email')
+                selected_option = self._get_booking_option(loc_display, type_key, cap, booking.get('_preferred_space_id'))
+                if not selected_option:
+                    available_types = self._available_booking_types(loc_display, cap)
+                    booking['_available_types'] = available_types
+                    booking['step'] = 'awaiting_alternative'
+                    self.booking_sessions[session_id] = booking
+                    readable = ', '.join(self._booking_type_label(t) for t in available_types)
+                    type_display = self._booking_type_label(type_key)
+                    if readable:
+                        return {"answer": f"Sorry, we don't have a **{type_display}** in **{loc_display}**.\n\nAvailable there: **{readable}**. Reply with one of those and I'll switch this booking right away.", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
+                    return {"answer": f"Sorry, we don't have any spaces in **{loc_display}** yet.", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
+
+                space_id = selected_option['space_id']
+                space_name = selected_option['space_name']
+                price = selected_option['price']
+                loc_display = selected_option['location']
 
                 booking_details = {
                     "booking_id": booking_id,
@@ -698,6 +913,8 @@ class AurbisRAG:
                     "booking_confirmed": True,
                     "booking_details": booking_details
                 }
+            elif message_updated_booking or self._detect_booking_intent(message):
+                booking['step'] = 'start'
             else:
                 del self.booking_sessions[session_id]
                 return {"answer": f"No worries, **{booking.get('name', 'friend')}**! I've cleared that out — no charges at all. Whenever you want to try again, just say the word! 😊", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
@@ -740,6 +957,18 @@ class AurbisRAG:
             type_display = type_labels.get(space_type, space_type)
             return {"answer": f"A **{type_display}** for **{name}** — love it! 🙌\n\nWe've got 5 great spots across Bangalore — which area works for you?\n\n• **Koramangala** — Our flagship, buzzing energy\n• **Whitefield** — Tech corridor, great for dev teams\n• **MG Road** — Premium central location\n• **Indiranagar** — Creative & chill vibe\n• **HSR Layout** — Startup scene, community feel", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
 
+        preview_option = self._get_booking_option(location, space_type, booking.get('capacity') or 0, booking.get('_preferred_space_id')) if location and space_type else None
+        if location and space_type and not preview_option:
+            available_types = self._available_booking_types(location, booking.get('capacity') or 0)
+            booking['_available_types'] = available_types
+            booking['step'] = 'awaiting_alternative'
+            self.booking_sessions[session_id] = booking
+            readable = ', '.join(self._booking_type_label(t) for t in available_types)
+            type_display = self._booking_type_label(space_type)
+            if readable:
+                return {"answer": f"Sorry, we don't have a **{type_display}** in **{location}**.\n\nAvailable there: **{readable}**. Reply **Conference Room**, **Hot Desk**, or **Event Space** and I'll switch it without starting over.", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
+            return {"answer": f"Sorry, we don't have any spaces in **{location}** yet. Try another Aurbis location and I'll update this booking.", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
+
         if not date or not time_val:
             booking['step'] = 'awaiting_datetime'
             self.booking_sessions[session_id] = booking
@@ -755,8 +984,11 @@ class AurbisRAG:
         self.booking_sessions[session_id] = booking
         cap = booking.get('capacity')
         cap_row = f"| 👥 **Capacity** | {cap} people |\n" if cap else ""
+        selected_row = f"| 🏷️ **Selected Room** | {preview_option['space_name']} ({preview_option['price']}) |\n" if preview_option else ""
         # Auto-pick notes
         auto_notes = []
+        if booking.get('_space_correction'):
+            auto_notes.append(f"📌 *{booking['_space_correction']}*")
         if booking.get('_type_auto'):
             auto_notes.append(f"📌 *Space type auto-selected as **{type_labels.get(space_type, space_type)}** — change anytime!*")
         if booking.get('_loc_auto'):
@@ -765,7 +997,7 @@ class AurbisRAG:
             auto_notes.append("📌 *Time auto-set to **Today at 3PM** — change anytime!*")
         auto_note_str = ("\n\n" + "\n".join(auto_notes)) if auto_notes else ""
         return {
-            "answer": f"Alright **{name}**, here's what I've got for you 👇\n\n| | |\n|---|---|\n| 👤 **Guest** | {name} |\n| 🏢 **Space** | {type_labels.get(space_type, space_type)} |\n| 📍 **Location** | {location} |\n{cap_row}| 📅 **Date** | {date} |\n| 🕐 **Time** | {time_val} |{auto_note_str}\n\nLooking good? Just say **yes** to confirm and I'll get it locked in! ✅",
+            "answer": f"Alright **{name}**, here's what I've got for you 👇\n\n| | |\n|---|---|\n| 👤 **Guest** | {name} |\n| 🏢 **Space** | {type_labels.get(space_type, space_type)} |\n{selected_row}| 📍 **Location** | {location} |\n{cap_row}| 📅 **Date** | {date} |\n| 🕐 **Time** | {time_val} |{auto_note_str}\n\nLooking good? Just say **yes** to confirm and I'll get it locked in! ✅",
             "sources": [],
             "mode": self.rag_backend,
             "suggested_spaces": []
