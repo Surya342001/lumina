@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aurbis Nova — Complete Project Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --blue: #3b82f6; --teal: #14b8a6; --cyan: #06b6d4;
+    --green: #10b981; --amber: #f59e0b; --red: #ef4444;
+    --dark: #0a0f1e; --card: #111827; --border: #1f2937;
+    --text: #f1f5f9; --muted: #6b7280;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* ── COVER PAGE ── */
+  .cover {
+    background: linear-gradient(135deg, #0a0f1e 0%, #0f172a 40%, #1e1040 100%);
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 40px;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(20,184,166,0.1) 0%, transparent 50%);
+  }
+  .cover-logo {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, #3b82f6, #14b8a6);
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; margin-bottom: 32px;
+    position: relative;
+    box-shadow: 0 0 40px rgba(59,130,246,0.4);
+  }
+  .cover h1 {
+    font-size: 56px; font-weight: 900; letter-spacing: -2px;
+    background: linear-gradient(135deg, #fff 30%, #14b8a6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    position: relative; margin-bottom: 8px;
+  }
+  .cover-sub {
+    font-size: 20px; color: rgba(255,255,255,0.5);
+    font-weight: 300; margin-bottom: 40px; position: relative;
+  }
+  .cover-badges {
+    display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+    position: relative; margin-bottom: 48px;
+  }
+  .badge {
+    padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05);
+    letter-spacing: 0.5px;
+  }
+  .badge-blue { border-color: rgba(59,130,246,0.4); color: #93c5fd; background: rgba(59,130,246,0.1); }
+  .badge-teal { border-color: rgba(20,184,166,0.4); color: #5eead4; background: rgba(20,184,166,0.1); }
+  .badge-amber { border-color: rgba(245,158,11,0.4); color: #fcd34d; background: rgba(245,158,11,0.1); }
+  .badge-green { border-color: rgba(16,185,129,0.4); color: #6ee7b7; background: rgba(16,185,129,0.1); }
+
+  .cover-meta {
+    position: relative;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 40px; width: 100%; max-width: 700px;
+  }
+  .meta-item { text-align: center; }
+  .meta-num { font-size: 28px; font-weight: 800; color: #3b82f6; }
+  .meta-label { font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  /* ── PAGE LAYOUT ── */
+  .page {
+    max-width: 960px; margin: 0 auto;
+    padding: 48px 48px;
+    page-break-after: always;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* ── SECTION HEADERS ── */
+  .section-number {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin-bottom: 24px;
+  }
+  .num-badge {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, #3b82f6, #14b8a6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 800; color: white;
+  }
+  h1.section-title {
+    font-size: 28px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;
+  }
+  h2 { font-size: 20px; font-weight: 700; color: #1e293b; margin: 32px 0 12px; }
+  h3 { font-size: 16px; font-weight: 600; color: #334155; margin: 20px 0 8px; }
+  p { color: #475569; margin-bottom: 12px; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 2px; margin: 8px 0 32px;
+    background: linear-gradient(90deg, #3b82f6, #14b8a6, transparent);
+    border-radius: 2px;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: white; border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 24px; margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .card-blue { border-left: 4px solid #3b82f6; }
+  .card-teal { border-left: 4px solid #14b8a6; }
+  .card-green { border-left: 4px solid #10b981; }
+  .card-amber { border-left: 4px solid #f59e0b; }
+  .card-red   { border-left: 4px solid #ef4444; }
+  .card-cyan  { border-left: 4px solid #06b6d4; }
+
+  /* ── GRID ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* ── CODE ── */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: #f1f5f9; border-radius: 4px;
+    padding: 2px 7px; font-size: 12px; color: #0f172a;
+    border: 1px solid #e2e8f0;
+  }
+  pre {
+    background: #0f172a; border-radius: 12px;
+    padding: 20px 24px; margin: 16px 0;
+    overflow-x: auto; font-size: 12px; line-height: 1.8;
+  }
+  pre code {
+    background: none; border: none; padding: 0;
+    color: #e2e8f0; font-size: 12px;
+  }
+  .kw { color: #93c5fd; }
+  .str { color: #6ee7b7; }
+  .cm { color: #64748b; }
+  .fn { color: #fcd34d; }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex; align-items: center; gap: 0;
+    flex-wrap: wrap; margin: 20px 0;
+  }
+  .flow-box {
+    background: white; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 12px 18px; text-align: center; font-size: 13px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    min-width: 110px;
+  }
+  .flow-box strong { display: block; font-size: 14px; color: #1e293b; }
+  .flow-box span { font-size: 11px; color: #94a3b8; }
+  .flow-arrow {
+    color: #94a3b8; font-size: 20px; padding: 0 8px; font-weight: 300;
+  }
+  .flow-box.active { background: #eff6ff; border-color: #bfdbfe; }
+  .flow-box.active strong { color: #1d4ed8; }
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  th {
+    background: #f8fafc; text-align: left; padding: 10px 14px;
+    font-size: 12px; font-weight: 700; color: #475569;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  td {
+    padding: 10px 14px; border-bottom: 1px solid #f1f5f9;
+    font-size: 13px; color: #334155; vertical-align: top;
+  }
+  tr:hover td { background: #f8fafc; }
+
+  /* ── PILLS / TAGS ── */
+  .pill {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; margin: 2px;
+  }
+  .pill-blue  { background: #eff6ff; color: #1d4ed8; }
+  .pill-teal  { background: #f0fdfa; color: #0d9488; }
+  .pill-green { background: #f0fdf4; color: #15803d; }
+  .pill-amber { background: #fffbeb; color: #b45309; }
+  .pill-red   { background: #fef2f2; color: #b91c1c; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-radius: 12px; padding: 16px 20px; margin: 16px 0;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .callout-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .callout-blue  { background: #eff6ff; border: 1px solid #bfdbfe; }
+  .callout-teal  { background: #f0fdfa; border: 1px solid #99f6e4; }
+  .callout-amber { background: #fffbeb; border: 1px solid #fde68a; }
+  .callout p { margin: 0; font-size: 13px; }
+
+  /* ── STEP LIST ── */
+  .steps { list-style: none; }
+  .steps li {
+    display: flex; gap: 16px; margin-bottom: 20px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #3b82f6, #14b8a6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: white; margin-top: 1px;
+  }
+  .step-content strong { display: block; color: #1e293b; margin-bottom: 3px; }
+  .step-content p { margin: 0; }
+
+  /* ── ENDPOINT ROW ── */
+  .endpoint {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-radius: 8px; margin-bottom: 8px;
+    background: white; border: 1px solid #e2e8f0;
+  }
+  .method {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 700; padding: 3px 8px;
+    border-radius: 4px; width: 48px; text-align: center; flex-shrink: 0;
+  }
+  .GET  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .POST { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .endpoint-path {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: #1e293b; font-weight: 600; flex-shrink: 0;
+  }
+  .endpoint-desc { font-size: 12px; color: #64748b; }
+
+  /* ── FEATURE CARD ── */
+  .feat-card {
+    background: white; border: 1px solid #e2e8f0;
+    border-radius: 14px; padding: 20px;
+    display: flex; gap: 16px; align-items: flex-start;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: 12px;
+  }
+  .feat-icon {
+    font-size: 24px; width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .feat-icon-blue  { background: #eff6ff; }
+  .feat-icon-teal  { background: #f0fdfa; }
+  .feat-icon-amber { background: #fffbeb; }
+  .feat-icon-green { background: #f0fdf4; }
+
+  /* ── PRINT ── */
+  @media print {
+    .cover { page-break-after: always; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page  { page-break-after: always; }
+    body   { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  /* ── TOC ── */
+  .toc-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px; border-radius: 8px; margin-bottom: 4px;
+    border: 1px solid transparent;
+  }
+  .toc-item:hover { background: #f8fafc; border-color: #e2e8f0; }
+  .toc-num { font-weight: 700; color: #3b82f6; min-width: 28px; }
+  .toc-dots { flex: 1; border-bottom: 2px dotted #e2e8f0; margin: 0 12px; height: 12px; }
+  .toc-pg { color: #94a3b8; font-size: 12px; font-weight: 600; }
+
+  .highlight-box {
+    background: linear-gradient(135deg, #0f172a, #1e1b4b);
+    color: white; border-radius: 16px; padding: 24px 28px; margin: 20px 0;
+  }
+  .highlight-box h3 { color: #e2e8f0; margin-top: 0; }
+  .highlight-box p { color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  COVER PAGE                                               -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">🏢</div>
+  <h1>Aurbis Nova</h1>
+  <p class="cover-sub">AI-Powered Workspace Booking Assistant — Complete Project Guide</p>
+
+  <div class="cover-badges">
+    <span class="badge badge-blue">Python · FastAPI</span>
+    <span class="badge badge-teal">LangChain · RAG</span>
+    <span class="badge badge-amber">React · Vite · TailwindCSS</span>
+    <span class="badge badge-green">Ollama · ChromaDB</span>
+    <span class="badge badge-blue">ReAct Agent</span>
+    <span class="badge badge-teal">Gmail Email Confirmations</span>
+    <span class="badge badge-green">Space Favorites</span>
+    <span class="badge badge-amber">Real QR Code</span>
+    <span class="badge badge-blue">Booking History</span>
+  </div>
+
+  <div class="cover-meta">
+    <div class="meta-item">
+      <div class="meta-num">41</div>
+      <div class="meta-label">Spaces</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-num">13</div>
+      <div class="meta-label">Areas</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-num">11</div>
+      <div class="meta-label">API Endpoints</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-num">8</div>
+      <div class="meta-label">Features</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  TABLE OF CONTENTS                                        -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">📋</div>
+    <h1 class="section-title">Table of Contents</h1>
+  </div>
+  <div class="divider"></div>
+
+  <div class="toc-item"><span class="toc-num">01</span><span><strong>Project Overview</strong> — What is Aurbis Nova?</span><span class="toc-dots"></span><span class="toc-pg">3</span></div>
+  <div class="toc-item"><span class="toc-num">02</span><span><strong>Tech Stack</strong> — Every tool and library used</span><span class="toc-dots"></span><span class="toc-pg">4</span></div>
+  <div class="toc-item"><span class="toc-num">03</span><span><strong>Project Structure</strong> — Folder and file layout</span><span class="toc-dots"></span><span class="toc-pg">5</span></div>
+  <div class="toc-item"><span class="toc-num">04</span><span><strong>Backend Deep Dive</strong> — FastAPI, RAG engine, Agent engine</span><span class="toc-dots"></span><span class="toc-pg">6</span></div>
+  <div class="toc-item"><span class="toc-num">05</span><span><strong>API Endpoints</strong> — Every route explained</span><span class="toc-dots"></span><span class="toc-pg">7</span></div>
+  <div class="toc-item"><span class="toc-num">06</span><span><strong>AI / LLM Architecture</strong> — RAG, ReAct, Self-Healing</span><span class="toc-dots"></span><span class="toc-pg">8</span></div>
+  <div class="toc-item"><span class="toc-num">07</span><span><strong>Chat Flow</strong> — Step-by-step user conversation</span><span class="toc-dots"></span><span class="toc-pg">9</span></div>
+  <div class="toc-item"><span class="toc-num">08</span><span><strong>Booking Flow</strong> — End-to-end booking pipeline</span><span class="toc-dots"></span><span class="toc-pg">10</span></div>
+  <div class="toc-item"><span class="toc-num">09</span><span><strong>Agent Mode</strong> — ReAct loop and Goal Blueprint</span><span class="toc-dots"></span><span class="toc-pg">11</span></div>
+  <div class="toc-item"><span class="toc-num">10</span><span><strong>Email System</strong> — Confirmation emails via Gmail</span><span class="toc-dots"></span><span class="toc-pg">12</span></div>
+  <div class="toc-item"><span class="toc-num">11</span><span><strong>Frontend Components</strong> — Every UI component</span><span class="toc-dots"></span><span class="toc-pg">13</span></div>
+  <div class="toc-item"><span class="toc-num">12</span><span><strong>Data Layer</strong> — Spaces, locations, knowledge base</span><span class="toc-dots"></span><span class="toc-pg">14</span></div>
+  <div class="toc-item"><span class="toc-num">13</span><span><strong>Environment & Config</strong> — .env keys explained</span><span class="toc-dots"></span><span class="toc-pg">15</span></div>
+  <div class="toc-item"><span class="toc-num">14</span><span><strong>How to Run</strong> — Step-by-step startup guide</span><span class="toc-dots"></span><span class="toc-pg">16</span></div>
+  <div class="toc-item"><span class="toc-num">15</span><span><strong>Changes Made</strong> — All features implemented across sessions</span><span class="toc-dots"></span><span class="toc-pg">17</span></div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  1. PROJECT OVERVIEW                                      -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">1</div>
+    <h1 class="section-title">Project Overview</h1>
+  </div>
+  <div class="divider"></div>
+
+  <div class="highlight-box">
+    <h3>🏢 What is Aurbis Nova?</h3>
+    <p>Aurbis Nova is an AI-powered workspace booking assistant for <strong style="color:#14b8a6">Aurbis</strong> — a premium managed office space provider across Bangalore. It uses Large Language Models (LLMs) combined with Retrieval-Augmented Generation (RAG) to let users find, compare, and book workspaces through a natural conversation interface — just like talking to a smart concierge.</p>
+  </div>
+
+  <h2>What Problem Does It Solve?</h2>
+  <p>Traditional workspace booking requires browsing static websites, filtering, calling support. Aurbis Nova lets users simply type: <em>"I need a conference room for 10 people in Koramangala tomorrow at 3pm under ₹2000/hr"</em> — and the AI handles everything else.</p>
+
+  <div class="grid-2">
+    <div class="card card-blue">
+      <h3>💬 Chat Mode</h3>
+      <p>Users have a natural conversation with <strong>Nova</strong>, the AI assistant. Nova understands context, remembers previous messages, asks for missing details, and confirms bookings step by step.</p>
+    </div>
+    <div class="card card-teal">
+      <h3>🤖 Agent Mode</h3>
+      <p>An autonomous AI agent that uses tools (search, compare, price, availability) in a reasoning loop to answer complex workspace questions without needing follow-up questions.</p>
+    </div>
+  </div>
+
+  <h2>Key Capabilities</h2>
+  <div class="grid-3">
+    <div class="card">
+      <strong>🔍 Smart Search</strong><br/>
+      <small>41 spaces · 13 Bangalore areas. Filter by location, capacity, type, price.</small>
+    </div>
+    <div class="card">
+      <strong>💬 Conversational Booking</strong><br/>
+      <small>Book through natural language. Nova collects name, date, time, email step by step.</small>
+    </div>
+    <div class="card">
+      <strong>📧 Email Confirmations</strong><br/>
+      <small>Beautiful HTML confirmation email with booking ID sent via Gmail.</small>
+    </div>
+    <div class="card">
+      <strong>⚡ ReAct Agent</strong><br/>
+      <small>Autonomous multi-step agent: Reason → Act → Observe → Answer.</small>
+    </div>
+    <div class="card">
+      <strong>📐 Goal Blueprint</strong><br/>
+      <small>Breaks complex goals into a task plan before executing — shows the full strategy.</small>
+    </div>
+    <div class="card">
+      <strong>🧠 RAG Knowledge</strong><br/>
+      <small>Answers from a ChromaDB vector store built from Aurbis's knowledge base.</small>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  2. TECH STACK                                            -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">2</div>
+    <h1 class="section-title">Tech Stack</h1>
+  </div>
+  <div class="divider"></div>
+
+  <h2>Backend</h2>
+  <table>
+    <tr><th>Library</th><th>Version</th><th>Purpose</th></tr>
+    <tr><td><code>FastAPI</code></td><td>≥0.109</td><td>Web framework — all REST API endpoints, SSE streaming</td></tr>
+    <tr><td><code>Uvicorn</code></td><td>≥0.27</td><td>ASGI server to run FastAPI</td></tr>
+    <tr><td><code>LangChain</code></td><td>≥0.1.6</td><td>LLM orchestration, prompt templates, RAG chain construction</td></tr>
+    <tr><td><code>langchain-openai</code></td><td>≥0.0.6</td><td>OpenAI integration (ChatOpenAI, OpenAIEmbeddings)</td></tr>
+    <tr><td><code>langchain-community</code></td><td>≥0.0.19</td><td>Chroma vector store, Ollama LLM integration</td></tr>
+    <tr><td><code>langchain-ollama</code></td><td>latest</td><td>Local Ollama LLM + embeddings (OllamaLLM, OllamaEmbeddings)</td></tr>
+    <tr><td><code>ChromaDB</code></td><td>≥0.4.22</td><td>Vector database — stores document embeddings for RAG retrieval</td></tr>
+    <tr><td><code>OpenAI</code></td><td>≥1.10</td><td>Direct OpenAI API calls for GPT-4o-mini and text-embedding-3-small</td></tr>
+    <tr><td><code>Pydantic</code></td><td>≥2.5</td><td>Request/response data validation models</td></tr>
+    <tr><td><code>python-dotenv</code></td><td>≥1.0</td><td>Load .env environment variables</td></tr>
+    <tr><td><code>smtplib</code></td><td>built-in</td><td>Send confirmation emails via Gmail SMTP</td></tr>
+  </table>
+
+  <h2>Frontend</h2>
+  <table>
+    <tr><th>Library</th><th>Version</th><th>Purpose</th></tr>
+    <tr><td><code>React</code></td><td>^18.2</td><td>UI library — component-based frontend</td></tr>
+    <tr><td><code>Vite</code></td><td>^5.0</td><td>Build tool + dev server with hot module reload</td></tr>
+    <tr><td><code>TailwindCSS</code></td><td>^3.3</td><td>Utility-first CSS — all styling done via class names</td></tr>
+    <tr><td><code>Framer Motion</code></td><td>^11.0</td><td>Smooth animations for cards, panels, transitions</td></tr>
+    <tr><td><code>react-markdown</code></td><td>^9.0</td><td>Render Nova's markdown responses as formatted HTML</td></tr>
+    <tr><td><code>remark-gfm</code></td><td>^4.0</td><td>GitHub Flavored Markdown tables, bold, lists in chat</td></tr>
+    <tr><td><code>axios</code></td><td>^1.6</td><td>HTTP requests to the FastAPI backend</td></tr>
+    <tr><td><code>lucide-react</code></td><td>^0.263</td><td>Icon library used throughout the UI</td></tr>
+  </table>
+
+  <h2>AI / Infrastructure</h2>
+  <div class="grid-2">
+    <div class="card card-blue">
+      <h3>🦙 Ollama (Primary — Local)</h3>
+      <p>Runs <strong>llama3</strong> model locally on your machine. No API costs. The RAG engine uses Ollama embeddings and llama3 as the LLM. Port: <code>11434</code></p>
+    </div>
+    <div class="card card-teal">
+      <h3>🤖 OpenAI (Optional — Cloud)</h3>
+      <p>If an <code>OPENAI_API_KEY</code> is set, uses <strong>gpt-4o-mini</strong> for chat and <strong>text-embedding-3-small</strong> for embeddings. Faster, smarter responses.</p>
+    </div>
+    <div class="card card-green">
+      <h3>🗄️ ChromaDB (Vector DB)</h3>
+      <p>Stores vectorized chunks of the Aurbis knowledge base. Enables semantic search — finding relevant docs by meaning, not just keywords. Stored at <code>backend/chroma_db/</code></p>
+    </div>
+    <div class="card card-amber">
+      <h3>📬 Gmail SMTP</h3>
+      <p>Uses Gmail App Password for sending beautiful HTML booking confirmation emails and agent result emails directly to the user's inbox.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  3. PROJECT STRUCTURE                                     -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">3</div>
+    <h1 class="section-title">Project Structure</h1>
+  </div>
+  <div class="divider"></div>
+
+<pre><code><span class="cm">llm projecct/                     ← Root workspace</span>
+├── backend/                      <span class="cm">← Python FastAPI server</span>
+│   ├── <span class="kw">main.py</span>                   <span class="cm">← FastAPI app, all API routes</span>
+│   ├── <span class="kw">rag_engine.py</span>             <span class="cm">← LangChain RAG + booking flow logic</span>
+│   ├── <span class="kw">agent_engine.py</span>           <span class="cm">← ReAct agent + Goal Blueprint</span>
+│   ├── <span class="kw">email_service.py</span>          <span class="cm">← Gmail SMTP email sender</span>
+│   ├── <span class="str">.env</span>                      <span class="cm">← API keys (never commit!)</span>
+│   ├── requirements.txt          <span class="cm">← Python dependencies</span>
+│   ├── venv/                     <span class="cm">← Python virtual environment</span>
+│   ├── chroma_db/                <span class="cm">← ChromaDB vector store (auto-created)</span>
+│   └── data/
+│       ├── <span class="kw">spaces.json</span>           <span class="cm">← 41 workspace listings</span>
+│       └── <span class="kw">knowledge_base.md</span>     <span class="cm">← Aurbis policies, amenities, FAQs</span>
+│
+├── frontend/                     <span class="cm">← React + Vite app</span>
+│   ├── src/
+│   │   ├── <span class="kw">App.jsx</span>               <span class="cm">← Root app, mode switching (Chat/Agent)</span>
+│   │   ├── index.css             <span class="cm">← Global styles, Tailwind imports</span>
+│   │   ├── api.js                <span class="cm">← Axios API client</span>
+│   │   └── components/
+│   │       ├── <span class="kw">ChatWidget.jsx</span>    <span class="cm">← Main chat interface with streaming</span>
+│   │       ├── <span class="kw">AgentPanel.jsx</span>    <span class="cm">← Agent mode (ReAct + Blueprint)</span>
+│   │       ├── <span class="kw">SpaceExplorer.jsx</span> <span class="cm">← Browse/filter 41 spaces</span>
+│   │       ├── <span class="kw">SpaceCard.jsx</span>     <span class="cm">← Individual space card UI</span>
+│   │       ├── <span class="kw">BookingModal.jsx</span>  <span class="cm">← Booking confirmation modal</span>
+│   │       ├── Header.jsx        <span class="cm">← Top navigation bar</span>
+│   │       ├── HeroSection.jsx   <span class="cm">← Landing hero with stats</span>
+│   │       ├── HowItWorks.jsx    <span class="cm">← Feature explanation section</span>
+│   │       └── StatsSection.jsx  <span class="cm">← Usage statistics display</span>
+│   ├── package.json
+│   └── vite.config.js
+│
+└── <span class="fn">start.sh</span>                      <span class="cm">← One-command startup script</span></code></pre>
+
+  <div class="callout callout-blue">
+    <span class="callout-icon">💡</span>
+    <p><strong>Key insight:</strong> The backend (port 8000) and frontend (port 5173) run as separate processes. The frontend talks to the backend via <code>http://localhost:8000</code>. CORS is fully open in development mode.</p>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  4. BACKEND DEEP DIVE                                     -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">4</div>
+    <h1 class="section-title">Backend Deep Dive</h1>
+  </div>
+  <div class="divider"></div>
+
+  <h2>main.py — The Entry Point</h2>
+  <p>FastAPI app that wires everything together. At startup it creates a singleton <code>AurbisRAG</code> instance which sets up the LLM and vector store in a background thread. All routes use this singleton.</p>
+
+  <div class="grid-2">
+    <div class="card card-blue">
+      <h3>AurbisRAG (rag_engine.py)</h3>
+      <p>The brain of the chat experience. Handles:</p>
+      <ul style="margin-left:16px; color:#475569; font-size:13px;">
+        <li>Document loading and chunking from <code>knowledge_base.md</code></li>
+        <li>Building the ChromaDB vector store</li>
+        <li>Retrieving relevant context for each user message</li>
+        <li>Running the LLM with the retrieved context</li>
+        <li>Managing per-session conversation history</li>
+        <li>The entire multi-step booking collection flow</li>
+        <li>Self-healing: detecting low-confidence answers and retrying</li>
+      </ul>
+    </div>
+    <div class="card card-teal">
+      <h3>AurbisAgent (agent_engine.py)</h3>
+      <p>The autonomous agent. Handles:</p>
+      <ul style="margin-left:16px; color:#475569; font-size:13px;">
+        <li>ReAct loop: Thought → Action → Observation → repeat</li>
+        <li>5 callable tools (search, details, price, compare, availability)</li>
+        <li>Streaming each step live to the frontend via SSE</li>
+        <li>Goal Decomposition: breaking complex goals into subtasks</li>
+        <li>Max 5 tool calls, then forced final answer</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>LLM Initialization Logic</h2>
+  <div class="flow">
+    <div class="flow-box"><strong>Start</strong><span>Server boots</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box"><strong>Ollama?</strong><span>Check :11434</span></div>
+    <div class="flow-arrow">→ yes →</div>
+    <div class="flow-box active"><strong>Ollama RAG</strong><span>llama3 + embeddings</span></div>
+    <div class="flow-arrow">→ no →</div>
+    <div class="flow-box"><strong>OpenAI key?</strong><span>Check .env</span></div>
+    <div class="flow-arrow">→ yes →</div>
+    <div class="flow-box active"><strong>OpenAI RAG</strong><span>gpt-4o-mini</span></div>
+    <div class="flow-arrow">→ no →</div>
+    <div class="flow-box"><strong>Demo Mode</strong><span>keyword rules</span></div>
+  </div>
+
+  <h2>Three Modes of Operation</h2>
+  <table>
+    <tr><th>Mode</th><th>When Used</th><th>LLM</th><th>Quality</th></tr>
+    <tr>
+      <td><span class="pill pill-blue">Ollama</span></td>
+      <td>Ollama running at localhost:11434</td>
+      <td>llama3 (local)</td>
+      <td>Good — 100% private, free</td>
+    </tr>
+    <tr>
+      <td><span class="pill pill-teal">OpenAI</span></td>
+      <td>Valid API key with credits</td>
+      <td>gpt-4o-mini (cloud)</td>
+      <td>Best — faster, smarter</td>
+    </tr>
+    <tr>
+      <td><span class="pill pill-amber">Demo</span></td>
+      <td>No Ollama, no OpenAI key</td>
+      <td>None — keyword rules</td>
+      <td>Basic — scripted responses</td>
+    </tr>
+  </table>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  5. API ENDPOINTS                                         -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">5</div>
+    <h1 class="section-title">API Endpoints</h1>
+  </div>
+  <div class="divider"></div>
+
+  <p>All endpoints are available at <code>http://localhost:8000</code></p>
+
+  <h2>Core</h2>
+  <div class="endpoint"><span class="method GET">GET</span><span class="endpoint-path">/</span><span class="endpoint-desc">Health check — returns app name, version, status, and available routes</span></div>
+  <div class="endpoint"><span class="method GET">GET</span><span class="endpoint-path">/api/health</span><span class="endpoint-desc">Returns RAG backend mode (ollama/openai/demo), space count, LLM status</span></div>
+
+  <h2>Chat</h2>
+  <div class="endpoint"><span class="method GET">GET</span><span class="endpoint-path">/api/chat/stream</span><span class="endpoint-desc">SSE streaming chat — sends tokens live as the LLM generates them. Params: <code>message</code>, <code>session_id</code></span></div>
+  <div class="endpoint"><span class="method POST">POST</span><span class="endpoint-path">/api/chat</span><span class="endpoint-desc">Non-streaming chat. Body: <code>&#123;message, session_id&#125;</code>. Returns full answer + sources + mode</span></div>
+
+  <h2>Spaces</h2>
+  <div class="endpoint"><span class="method GET">GET</span><span class="endpoint-path">/api/spaces</span><span class="endpoint-desc">List all spaces. Query params: <code>location</code>, <code>type</code>, <code>min_capacity</code>, <code>max_price</code>, <code>limit</code></span></div>
+  <div class="endpoint"><span class="method GET">GET</span><span class="endpoint-path">/api/spaces/semantic-search</span><span class="endpoint-desc">AI-powered search using keyword scoring. Param: <code>q</code> (natural language query)</span></div>
+  <div class="endpoint"><span class="method GET">GET</span><span class="endpoint-path">/api/spaces/&#123;space_id&#125;</span><span class="endpoint-desc">Get full details of one space by ID (e.g. <code>KOR-001</code>)</span></div>
+  <div class="endpoint"><span class="method GET">GET</span><span class="endpoint-path">/api/locations</span><span class="endpoint-desc">Returns list of all 13 Bangalore locations with space counts</span></div>
+
+  <h2>Agent</h2>
+  <div class="endpoint"><span class="method GET">GET</span><span class="endpoint-path">/api/agent/stream</span><span class="endpoint-desc">SSE stream of ReAct agent steps — thought, action, observation, final answer. Param: <code>goal</code></span></div>
+  <div class="endpoint"><span class="method POST">POST</span><span class="endpoint-path">/api/agent/decompose</span><span class="endpoint-desc">Goal Blueprint — decomposes a goal into task list. Body: <code>&#123;goal&#125;</code></span></div>
+  <div class="endpoint"><span class="method GET">GET</span><span class="endpoint-path">/api/agent/tools</span><span class="endpoint-desc">Returns metadata for all 5 agent tools with descriptions</span></div>
+
+  <h2>Booking & Notifications</h2>
+  <div class="endpoint"><span class="method POST">POST</span><span class="endpoint-path">/api/book</span><span class="endpoint-desc">Confirm a booking. Generates booking ID, sends confirmation email. Body: <code>&#123;session_id, name, space_name, location, date, time, email, price&#125;</code></span></div>
+  <div class="endpoint"><span class="method POST">POST</span><span class="endpoint-path">/api/notify</span><span class="endpoint-desc">Send agent results to email. Body: <code>&#123;to_email, goal, result&#125;</code></span></div>
+
+  <div class="callout callout-teal">
+    <span class="callout-icon">📡</span>
+    <p><strong>SSE Streaming:</strong> <code>/api/chat/stream</code> and <code>/api/agent/stream</code> use Server-Sent Events. The browser keeps a connection open and the server pushes data chunks as they arrive from the LLM. This makes responses appear word-by-word in real time.</p>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  6. AI / LLM ARCHITECTURE                                 -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">6</div>
+    <h1 class="section-title">AI / LLM Architecture</h1>
+  </div>
+  <div class="divider"></div>
+
+  <h2>Pattern 1 — RAG (Retrieval-Augmented Generation)</h2>
+  <p>Instead of relying purely on the LLM's training data, RAG retrieves specific Aurbis information before generating an answer.</p>
+
+  <div class="flow" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="flow-box" style="min-width:160px"><strong>1. User Message</strong><span>"Find a room in Koramangala"</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="min-width:160px"><strong>2. Embed Query</strong><span>Convert to vector</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box active" style="min-width:160px"><strong>3. ChromaDB Search</strong><span>Find top-3 similar docs</span></div>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px; margin-left: 80px;">
+      <div class="flow-arrow" style="transform: rotate(90deg)">↓</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="flow-box" style="min-width:160px"><strong>6. Stream to User</strong><span>Word by word via SSE</span></div>
+      <div class="flow-arrow">←</div>
+      <div class="flow-box active" style="min-width:160px"><strong>5. LLM Generates</strong><span>Answer using context</span></div>
+      <div class="flow-arrow">←</div>
+      <div class="flow-box" style="min-width:160px"><strong>4. Build Prompt</strong><span>Context + history + question</span></div>
+    </div>
+  </div>
+
+  <h2>Pattern 2 — ReAct Agent (Reason + Act)</h2>
+  <p>For complex workspace queries, the agent doesn't just answer — it reasons step by step, calls real tools, and observes results.</p>
+<pre><code><span class="cm">Goal: "Find the best 10-person room in Bellandur under ₹2000/hr"</span>
+
+<span class="kw">Thought:</span> I need to search for spaces in Bellandur with capacity ≥ 10 and price ≤ 2000
+<span class="kw">Action:</span>  <span class="fn">search_spaces</span>(location=<span class="str">"Bellandur"</span>, capacity=<span class="str">10</span>, max_price=<span class="str">2000</span>)
+<span class="kw">Observe:</span> Found 2 spaces: BEL-001 (₹1,200/hr), BEL-003 (₹1,800/hr)
+
+<span class="kw">Thought:</span> I should get full details on BEL-001 since it's cheapest
+<span class="kw">Action:</span>  <span class="fn">get_space_details</span>(space_id=<span class="str">"BEL-001"</span>)
+<span class="kw">Observe:</span> Lake View Suite — 8 pax, 4K display, video conferencing, ₹1,200/hr
+
+<span class="kw">Thought:</span> I have enough information for a full answer
+<span class="kw">Final Answer:</span> "The best option is Lake View Suite in Bellandur..."</code></pre>
+
+  <h2>Pattern 3 — Self-Healing RAG</h2>
+  <p>If Nova detects phrases like <em>"I'm not sure"</em> or <em>"I don't have information"</em> in its own response, it automatically reformulates the query and retries once before giving up.</p>
+
+  <h2>Pattern 4 — Goal Decomposition</h2>
+  <p>The Goal Blueprint mode sends the user's goal to the LLM and asks it to output a JSON task list with tool assignments. Each task is shown visually before execution.</p>
+
+  <h2>The 5 Agent Tools</h2>
+  <table>
+    <tr><th>Tool</th><th>What It Does</th><th>Example Call</th></tr>
+    <tr><td>🔍 <code>search_spaces</code></td><td>Filter spaces by location, capacity, type, price</td><td><code>search_spaces(location="MG Road", capacity=20)</code></td></tr>
+    <tr><td>📋 <code>get_space_details</code></td><td>Full info: amenities, pricing tiers, description</td><td><code>get_space_details(space_id="MGR-001")</code></td></tr>
+    <tr><td>💰 <code>calculate_price</code></td><td>Compute total cost for N hours</td><td><code>calculate_price(space_id="KOR-002", hours=3)</code></td></tr>
+    <tr><td>⚖️ <code>compare_spaces</code></td><td>Side-by-side table of multiple spaces</td><td><code>compare_spaces(space_ids="KOR-001,WHI-002")</code></td></tr>
+    <tr><td>📅 <code>check_availability</code></td><td>Confirms a space is available on a date/time</td><td><code>check_availability(space_id="HSR-001", date="tomorrow")</code></td></tr>
+  </table>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  7. CHAT FLOW                                             -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">7</div>
+    <h1 class="section-title">Chat Flow</h1>
+  </div>
+  <div class="divider"></div>
+
+  <p>This is the step-by-step journey of a user message through the system:</p>
+
+  <ul class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>User types a message in ChatWidget.jsx</strong>
+        <p>The frontend calls <code>GET /api/chat/stream?message=...&session_id=...</code>. A unique <code>session_id</code> is generated on first load and stored in React state.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>FastAPI receives the request at <code>chat_stream()</code></strong>
+        <p>It calls <code>rag.chat(message, session_id)</code> inside an async generator. The response is wrapped in a <code>StreamingResponse</code> with <code>text/event-stream</code> content type.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>AurbisRAG detects booking intent or general question</strong>
+        <p>Keywords like "book", "reserve", "want a room" trigger the booking flow. Everything else goes to the RAG pipeline.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <strong>RAG pipeline: embed → retrieve → prompt → generate</strong>
+        <p>The query is embedded, top-3 relevant chunks are retrieved from ChromaDB, and a full prompt is built with context + chat history. The LLM generates a response token by token.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <strong>Streaming tokens arrive at the frontend</strong>
+        <p><code>ChatWidget.jsx</code> listens to the SSE stream. As each chunk arrives, it appends to the assistant message in real time — the user sees the response being typed out.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <strong>Response rendered with react-markdown</strong>
+        <p>Nova's response may contain markdown (bold, tables, bullet lists). <code>react-markdown</code> with <code>remark-gfm</code> renders it as rich HTML inside the chat bubble.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">7</div>
+      <div class="step-content">
+        <strong>Conversation history is maintained server-side</strong>
+        <p>The last 20 messages for each <code>session_id</code> are stored in a Python dict inside <code>AurbisRAG.session_histories</code>. Each new request appends to this history.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout callout-amber">
+    <span class="callout-icon">⚠️</span>
+    <p><strong>Session persistence:</strong> Sessions are stored in-memory. They are lost when the backend restarts. For production, these should be stored in Redis or a database.</p>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  8. BOOKING FLOW                                          -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">8</div>
+    <h1 class="section-title">Booking Flow</h1>
+  </div>
+  <div class="divider"></div>
+
+  <p>When Nova detects booking intent, it enters a multi-turn data collection conversation:</p>
+
+  <ul class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>Detect Booking Intent</strong>
+        <p>Keywords: "book", "reserve", "want to book", "wanna book", "I need a room". The <code>_detect_booking_intent()</code> function scans for these in the user message.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>Extract Details from Message</strong>
+        <p>Nova uses regex extractors to pull: <strong>location</strong> (13 areas with typo tolerance), <strong>space type</strong> (conference/event/office/desk), <strong>capacity</strong> (number of people), <strong>date</strong> (tomorrow, Monday, specific dates), <strong>time</strong> (3pm, 15:00), <strong>name</strong>, <strong>email</strong>.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Ask for Missing Details (One at a Time)</strong>
+        <p>Nova determines what's missing and asks a single focused question. It never asks for all details at once — e.g. <em>"Which location in Bangalore?"</em> then <em>"What date do you need it?"</em></p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <strong>Match to a Real Space</strong>
+        <p><code>_get_booking_option(location, space_type, capacity)</code> finds the best matching space from the 41 in <code>spaces.json</code>. It uses a manual lookup table first, then falls back to the full catalog.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <strong>Show Booking Summary & Ask for Confirmation</strong>
+        <p>Nova displays: space name, location, date, time, capacity, price — and asks <em>"Shall I confirm this booking?"</em> Nothing is booked until the user says yes.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">6</div>
+      <div class="step-content">
+        <strong>User Confirms → POST /api/book</strong>
+        <p>Frontend detects confirmation intent and calls <code>/api/book</code> with all collected details. Backend generates a unique <code>AUR-XXXXXX</code> booking ID.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">7</div>
+      <div class="step-content">
+        <strong>Email Confirmation Sent</strong>
+        <p><code>send_booking_confirmation()</code> sends a beautiful HTML email to the user's provided email via Gmail SMTP. Email contains booking ID, space details, access instructions.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="grid-2">
+    <div class="card card-green">
+      <h3>✅ Required Fields</h3>
+      <p>Name · Space/Location · Date · Time · Email</p>
+      <p>Nova collects all 5 before showing the confirmation summary.</p>
+    </div>
+    <div class="card card-amber">
+      <h3>🔄 Re-booking Support</h3>
+      <p>If user says "same booking but in Whitefield", <code>_detect_rebooking()</code> triggers and pre-fills all previous details except the changed one.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  9. AGENT MODE                                            -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">9</div>
+    <h1 class="section-title">Agent Mode</h1>
+  </div>
+  <div class="divider"></div>
+
+  <p>Agent Mode is accessed by clicking the <strong>🤖 Agent Mode</strong> toggle in the top-right of the app. It has two sub-modes:</p>
+
+  <div class="grid-2">
+    <div class="feat-card">
+      <div class="feat-icon feat-icon-blue">⚡</div>
+      <div>
+        <strong style="font-size:16px; color:#1e293b">Run Agent (ReAct)</strong>
+        <p style="font-size:13px; margin-top:6px">Type a complex goal, press Run. The agent autonomously calls tools, reasons at each step, and streams every thought and action live to the screen. You can watch the AI think in real time.</p>
+        <p style="font-size:12px; color:#94a3b8; margin-top:4px">Theme: <span class="pill pill-blue">Blue</span></p>
+      </div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon feat-icon-teal">📐</div>
+      <div>
+        <strong style="font-size:16px; color:#1e293b">Goal Blueprint (Decompose)</strong>
+        <p style="font-size:13px; margin-top:6px">Type a goal, press Plan. Instead of executing immediately, Nova breaks it into 3–5 ordered subtasks with tool assignments. You see the plan before anything runs.</p>
+        <p style="font-size:12px; color:#94a3b8; margin-top:4px">Theme: <span class="pill pill-teal">Teal</span></p>
+      </div>
+    </div>
+  </div>
+
+  <h2>ReAct Loop — How It Works</h2>
+
+  <table>
+    <tr><th>Step</th><th>What Happens</th><th>UI Color</th></tr>
+    <tr><td>💭 <strong>Thought</strong></td><td>LLM reasons about what to do next (shown in real time)</td><td><span class="pill pill-blue">Blue</span></td></tr>
+    <tr><td>🔧 <strong>Action</strong></td><td>LLM decides which tool to call and with what parameters</td><td><span class="pill pill-amber">Amber</span></td></tr>
+    <tr><td>📊 <strong>Observation</strong></td><td>Tool runs and returns data from the spaces database</td><td><span class="pill pill-green">Green</span></td></tr>
+    <tr><td>✅ <strong>Final Answer</strong></td><td>LLM composes a complete, formatted answer for the user</td><td><span class="pill pill-green">Emerald</span></td></tr>
+    <tr><td>⚠️ <strong>Error</strong></td><td>Something went wrong (e.g. LLM timeout, unknown tool)</td><td><span class="pill pill-red">Red</span></td></tr>
+  </table>
+
+  <h2>Goal Blueprint Steps</h2>
+  <ul class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>POST /api/agent/decompose</strong>
+        <p>Backend calls <code>AurbisAgent.decompose_goal(goal)</code> which sends the goal to the LLM with a special prompt asking for a JSON task array.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>LLM outputs JSON task list</strong>
+        <p>Example: <code>[&#123;"id":1,"task":"Search spaces in Bellandur for 25 people","tool":"search_spaces","status":"pending"&#125;, ...]</code></p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Frontend renders the BlueprintBoard</strong>
+        <p>Each task is shown as a numbered card with the assigned tool icon. Tasks animate in one by one. A progress bar shows completion state.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <strong>Robust Fallback</strong>
+        <p>If the LLM fails to return valid JSON, <code>decompose_goal()</code> falls back to keyword-based task generation (find → 2 tasks, book → 4 tasks, compare → 3 tasks).</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2>Sharing Agent Results</h2>
+  <p>After a completed agent run, the user can click <strong>Share by Email</strong>. This calls <code>POST /api/notify</code> which sends a formatted HTML email with the full agent result via Gmail.</p>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  10. EMAIL SYSTEM                                         -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">10</div>
+    <h1 class="section-title">Email System</h1>
+  </div>
+  <div class="divider"></div>
+
+  <p>The email system uses <strong>Gmail SMTP</strong> with an App Password (not the regular Gmail password). It sends two types of emails:</p>
+
+  <div class="grid-2">
+    <div class="card card-green">
+      <h3>📧 Booking Confirmation</h3>
+      <p>Triggered when a booking is confirmed via <code>/api/book</code>. Contains:</p>
+      <ul style="margin-left:16px; color:#475569; font-size:13px; margin-top:8px;">
+        <li>Unique Booking ID (e.g. AUR-XK9M2P)</li>
+        <li>Space name and location</li>
+        <li>Date and time</li>
+        <li>Price</li>
+        <li>Access instructions (show booking ID at reception)</li>
+        <li>Aurbis contact information</li>
+      </ul>
+    </div>
+    <div class="card card-blue">
+      <h3>🤖 Agent Result Share</h3>
+      <p>Triggered when user clicks Share on agent results. Contains:</p>
+      <ul style="margin-left:16px; color:#475569; font-size:13px; margin-top:8px;">
+        <li>The original goal asked</li>
+        <li>Full agent result text</li>
+        <li>Formatted as a clean HTML email</li>
+        <li>Branded with Aurbis Nova styling</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>How Gmail SMTP Works</h2>
+  <ul class="steps">
+    <li>
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>Generate Gmail App Password</strong>
+        <p>In Gmail settings → Security → 2-Step Verification → App Passwords. Generate a 16-character password for "Mail".</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>Set in .env file</strong>
+        <p><code>GMAIL_USER=your@gmail.com</code> and <code>GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx</code> (remove spaces)</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Python smtplib sends the email</strong>
+        <p><code>smtplib.SMTP_SSL("smtp.gmail.com", 465)</code> → login → <code>sendmail()</code>. The email is a <code>MIMEMultipart</code> with both HTML and plain text parts for compatibility.</p>
+      </div>
+    </li>
+  </ul>
+
+  <div class="callout callout-amber">
+    <span class="callout-icon">⚠️</span>
+    <p><strong>Security note:</strong> Never use your real Gmail password. Always use an App Password. The <code>.gitignore</code> should include <code>.env</code> to prevent credentials being pushed to GitHub.</p>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  11. FRONTEND COMPONENTS                                  -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">11</div>
+    <h1 class="section-title">Frontend Components</h1>
+  </div>
+  <div class="divider"></div>
+
+  <table>
+    <tr><th>Component</th><th>File</th><th>Purpose</th></tr>
+    <tr>
+      <td><strong>App</strong></td><td><code>App.jsx</code></td>
+      <td>Root component. Manages <code>appMode</code> state (chat/agent). Renders either <code>ChatWidget</code> or <code>AgentPanel</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>Header</strong></td><td><code>Header.jsx</code></td>
+      <td>Top navigation. Shows Aurbis Nova logo, navigation links.</td>
+    </tr>
+    <tr>
+      <td><strong>HeroSection</strong></td><td><code>HeroSection.jsx</code></td>
+      <td>Landing page hero with headline, subtext, animated gradient background, and CTA buttons.</td>
+    </tr>
+    <tr>
+      <td><strong>ChatWidget</strong></td><td><code>ChatWidget.jsx</code></td>
+      <td>The main chat interface. Manages message history, SSE streaming, scroll behavior, and renders markdown responses. Has quick suggestion chips. <strong>New:</strong> Real scannable QR code on booking confirmation (api.qrserver.com), Booking History panel (🧾 button in header, shows last 30 bookings from localStorage, clearable).</td>
+    </tr>
+    <tr>
+      <td><strong>AgentPanel</strong></td><td><code>AgentPanel.jsx</code></td>
+      <td>The autonomous agent interface. Contains two sub-modes: Run Agent (ReAct live stream) and Goal Blueprint (task decomposition). Shows step cards with animations.</td>
+    </tr>
+    <tr>
+      <td><strong>SpaceExplorer</strong></td><td><code>SpaceExplorer.jsx</code></td>
+      <td>Browse and filter all 41 spaces. Has location filter, type filter, capacity filter. Renders <code>SpaceCard</code> for each result. <strong>New:</strong> "❤️ Saved" filter tab shows only favorited spaces; count badge updates live via <code>aurbis_favorites_changed</code> event.</td>
+    </tr>
+    <tr>
+      <td><strong>SpaceCard</strong></td><td><code>SpaceCard.jsx</code></td>
+      <td>Individual space listing. Shows name, location, capacity, price, amenities, type badge. Has "Book This Space" button. <strong>New:</strong> Heart button toggles the space as a favorite (persisted in <code>localStorage</code>), fires <code>aurbis_favorites_changed</code> event for live sync.</td>
+    </tr>
+    <tr>
+      <td><strong>BookingModal</strong></td><td><code>BookingModal.jsx</code></td>
+      <td>Modal overlay for booking a space directly from the SpaceExplorer. Collects name, date, time, email and calls <code>/api/book</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>AIShowcase</strong></td><td><code>AIShowcase.jsx</code></td>
+      <td>"Under the Hood" section with 4 animated live-demo cards: RAG Pipeline (step-by-step cycle), ReAct Agent (live terminal typewriter), Semantic Search (query → concept → results), Self-Healing RAG (auto-retry loop). Each card has a "Try it →" button that scrolls + switches mode.</td>
+    </tr>
+    <tr>
+      <td><strong>HowItWorks</strong></td><td><code>HowItWorks.jsx</code></td>
+      <td>4-step RAG explainer section: User Query → Embed → ChromaDB Retrieval → LLM Generation.</td>
+    </tr>
+    <tr>
+      <td><strong>StatsSection</strong></td><td><code>StatsSection.jsx</code></td>
+      <td>Displays stats (41 spaces, 13 areas, AI-powered, instant booking).</td>
+    </tr>
+  </table>
+
+  <h2>State Management</h2>
+  <div class="callout callout-blue">
+    <span class="callout-icon">⚛️</span>
+    <p>This project uses <strong>React's built-in state</strong> (<code>useState</code>, <code>useEffect</code>, <code>useRef</code>) only — no Redux, no Zustand. State flows down via props. The main app state is: <code>appMode</code> (chat/agent), <code>highlightedIds</code> (space IDs Nova mentioned), <code>bookingSpace</code> (space being booked in modal).</p>
+  </div>
+
+  <h2>Styling System</h2>
+  <p>All styling uses <strong>TailwindCSS utility classes</strong>. Custom colors are defined in <code>tailwind.config.js</code>:</p>
+<pre><code><span class="str">'aurbis-dark'</span>: <span class="str">'#060b18'</span>     <span class="cm">← Main dark background</span>
+<span class="str">'aurbis-card'</span>: <span class="str">'#0d1526'</span>     <span class="cm">← Card/panel background</span>
+<span class="str">'aurbis-border'</span>: <span class="str">'#1a2540'</span>  <span class="cm">← Border color</span></code></pre>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  12. DATA LAYER                                           -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">12</div>
+    <h1 class="section-title">Data Layer</h1>
+  </div>
+  <div class="divider"></div>
+
+  <h2>spaces.json — 41 Workspace Listings</h2>
+  <p>Each space object contains:</p>
+<pre><code>{
+  <span class="str">"id"</span>: <span class="str">"KOR-001"</span>,           <span class="cm">← Unique ID (location prefix + number)</span>
+  <span class="str">"name"</span>: <span class="str">"Innovation Hub"</span>,
+  <span class="str">"location"</span>: <span class="str">"Koramangala"</span>,
+  <span class="str">"type"</span>: <span class="str">"conference"</span>,        <span class="cm">← conference | event | office | desk</span>
+  <span class="str">"type_label"</span>: <span class="str">"Conference Room"</span>,
+  <span class="str">"capacity"</span>: <span class="kw">12</span>,
+  <span class="str">"rating"</span>: <span class="kw">4.8</span>,
+  <span class="str">"pricing"</span>: {
+    <span class="str">"hourly"</span>: <span class="kw">1500</span>,          <span class="cm">← in ₹</span>
+    <span class="str">"half_day"</span>: <span class="kw">5000</span>,
+    <span class="str">"full_day"</span>: <span class="kw">9000</span>
+  },
+  <span class="str">"amenities"</span>: [<span class="str">"85\" 4K Display"</span>, <span class="str">"Zoom Room Certified"</span>, ...],
+  <span class="str">"ideal_for"</span>: [<span class="str">"Client meetings"</span>, <span class="str">"Team standups"</span>, ...],
+  <span class="str">"description"</span>: <span class="str">"Premium conference room..."</span>
+}</code></pre>
+
+  <h2>13 Bangalore Locations</h2>
+  <div class="grid-3">
+    <div class="pill pill-blue">Koramangala</div>
+    <div class="pill pill-blue">Whitefield</div>
+    <div class="pill pill-blue">MG Road</div>
+    <div class="pill pill-teal">Indiranagar</div>
+    <div class="pill pill-teal">HSR Layout</div>
+    <div class="pill pill-teal">Electronic City</div>
+    <div class="pill pill-green">Hebbal</div>
+    <div class="pill pill-green">Jayanagar</div>
+    <div class="pill pill-green">Marathahalli</div>
+    <div class="pill pill-amber">Bannerghatta Road</div>
+    <div class="pill pill-amber">Sarjapur Road</div>
+    <div class="pill pill-amber">Bellandur</div>
+    <div class="pill pill-red">Yelahanka</div>
+  </div>
+
+  <h2>knowledge_base.md — RAG Source</h2>
+  <p>This markdown file is chunked into ~500 character pieces with 50-character overlap and embedded into ChromaDB. It contains:</p>
+  <div class="grid-2">
+    <div class="card">
+      <ul style="margin-left:16px; color:#475569; font-size:13px;">
+        <li>Aurbis company overview</li>
+        <li>Pricing guide for all space types</li>
+        <li>Membership plans (Starter, Professional, Enterprise)</li>
+        <li>Booking policies (minimum hours, advance notice)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <ul style="margin-left:16px; color:#475569; font-size:13px;">
+        <li>Cancellation and refund policy</li>
+        <li>Amenities guide for each location</li>
+        <li>FAQ (parking, catering, AV equipment)</li>
+        <li>Hub-by-hub descriptions for all 13 areas</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>ChromaDB Collections</h2>
+  <table>
+    <tr><th>Collection Name</th><th>Used When</th><th>Embedding Model</th></tr>
+    <tr><td><code>aurbis_knowledge_ollama</code></td><td>Ollama mode</td><td>OllamaEmbeddings (llama3)</td></tr>
+    <tr><td><code>aurbis_knowledge_openai</code></td><td>OpenAI mode</td><td>text-embedding-3-small</td></tr>
+  </table>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  13. ENVIRONMENT & CONFIG                                 -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">13</div>
+    <h1 class="section-title">Environment &amp; Configuration</h1>
+  </div>
+  <div class="divider"></div>
+
+  <p>The backend reads configuration from <code>backend/.env</code>:</p>
+
+<pre><code><span class="cm"># ── OpenAI (optional — use if Ollama is unavailable)</span>
+<span class="kw">OPENAI_API_KEY</span>=<span class="str">sk-proj-...</span>        <span class="cm">← Your OpenAI key</span>
+<span class="kw">OPENAI_MODEL</span>=<span class="str">gpt-4o-mini</span>           <span class="cm">← Which GPT model to use</span>
+<span class="kw">EMBEDDING_MODEL</span>=<span class="str">text-embedding-3-small</span>
+
+<span class="cm"># ── Gmail Email Config</span>
+<span class="kw">GMAIL_USER</span>=<span class="str">your@gmail.com</span>          <span class="cm">← Gmail address to send FROM</span>
+<span class="kw">GMAIL_APP_PASSWORD</span>=<span class="str">xxxxxxxxxxxxxxxx</span> <span class="cm">← 16-char Gmail App Password</span>
+
+<span class="cm"># ── Optional Ollama config (defaults shown)</span>
+<span class="kw">OLLAMA_MODEL</span>=<span class="str">llama3</span>                 <span class="cm">← Which Ollama model to use</span>
+<span class="kw">DEMO_MODE</span>=<span class="str">false</span>                     <span class="cm">← Force demo mode (no LLM at all)</span></code></pre>
+
+  <table>
+    <tr><th>Variable</th><th>Required?</th><th>Effect if Missing</th></tr>
+    <tr><td><code>OPENAI_API_KEY</code></td><td>Optional</td><td>Falls back to Ollama. If Ollama also unavailable → Demo mode.</td></tr>
+    <tr><td><code>OPENAI_MODEL</code></td><td>Optional</td><td>Defaults to <code>gpt-4o-mini</code></td></tr>
+    <tr><td><code>EMBEDDING_MODEL</code></td><td>Optional</td><td>Defaults to <code>text-embedding-3-small</code></td></tr>
+    <tr><td><code>GMAIL_USER</code></td><td>Optional</td><td>Email sending is silently skipped</td></tr>
+    <tr><td><code>GMAIL_APP_PASSWORD</code></td><td>Optional</td><td>Email sending is silently skipped</td></tr>
+    <tr><td><code>OLLAMA_MODEL</code></td><td>Optional</td><td>Defaults to <code>llama3</code></td></tr>
+    <tr><td><code>DEMO_MODE</code></td><td>Optional</td><td>If <code>true</code>, skips all LLM setup and uses keyword rules</td></tr>
+  </table>
+
+  <div class="callout callout-teal">
+    <span class="callout-icon">🔒</span>
+    <p><strong>Security:</strong> The <code>.env</code> file is listed in <code>.gitignore</code> so it's never committed to GitHub. The <code>.env.example</code> file shows the structure without real values.</p>
+  </div>
+
+  <h2>CORS Configuration</h2>
+  <p>The backend has <code>allow_origins=["*"]</code> set in development. For production deployment, replace <code>"*"</code> with your actual frontend URL (e.g. <code>"https://aurbis.com"</code>).</p>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  14. HOW TO RUN                                           -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-number">
+    <div class="num-badge">14</div>
+    <h1 class="section-title">How to Run</h1>
+  </div>
+  <div class="divider"></div>
+
+  <h2>Option A — One Command (start.sh)</h2>
+<pre><code><span class="fn">bash</span> start.sh</code></pre>
+  <p>This script: starts Ollama, starts the frontend (npm run dev), and keeps the backend running with auto-restart on crash.</p>
+
+  <h2>Option B — Manual (Recommended for Development)</h2>
+
+  <h3>Step 1 — Start Ollama</h3>
+<pre><code>ollama serve          <span class="cm"># Start Ollama in background</span>
+ollama pull llama3    <span class="cm"># Download llama3 if not already downloaded</span></code></pre>
+
+  <h3>Step 2 — Start Backend</h3>
+<pre><code><span class="fn">cd</span> backend
+source venv/bin/activate          <span class="cm"># Activate Python virtual environment</span>
+<span class="fn">uvicorn</span> main:app --reload --port 8000</code></pre>
+
+  <p>You should see:</p>
+<pre><code>🦙 Setting up RAG with Ollama (llama3)...
+✅ RAG ready with Ollama llama3
+INFO: Uvicorn running on http://127.0.0.1:8000</code></pre>
+
+  <h3>Step 3 — Start Frontend</h3>
+<pre><code><span class="fn">cd</span> frontend
+<span class="fn">npm</span> install      <span class="cm"># Only needed first time</span>
+<span class="fn">npm</span> run dev</code></pre>
+
+  <p>Frontend starts at <code>http://localhost:5173</code></p>
+
+  <h2>First-Time Setup (venv)</h2>
+<pre><code><span class="fn">cd</span> backend
+python3 -m venv venv
+source venv/bin/activate
+<span class="fn">pip</span> install -r requirements.txt</code></pre>
+
+  <h2>Verify Everything is Working</h2>
+  <table>
+    <tr><th>Check</th><th>URL</th><th>Expected Response</th></tr>
+    <tr><td>Backend alive</td><td><code>http://localhost:8000/</code></td><td>JSON with app name and version</td></tr>
+    <tr><td>RAG mode</td><td><code>http://localhost:8000/api/health</code></td><td><code>&#123;"rag_backend": "ollama"&#125;</code></td></tr>
+    <tr><td>Spaces loaded</td><td><code>http://localhost:8000/api/spaces</code></td><td>Array of 41 space objects</td></tr>
+    <tr><td>Frontend</td><td><code>http://localhost:5173</code></td><td>Aurbis Nova UI loads</td></tr>
+  </table>
+
+  <div class="callout callout-blue">
+    <span class="callout-icon">🚀</span>
+    <p><strong>Quick test:</strong> Go to <code>http://localhost:5173</code>, type <em>"I need a conference room for 10 people in Koramangala tomorrow at 3pm"</em> and watch Nova collect your booking details step by step!</p>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  15. CHANGES MADE THIS SESSION                            -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="page" style="page-break-after: auto;">
+  <div class="section-number">
+    <div class="num-badge">15</div>
+    <h1 class="section-title">Changes Made This Session</h1>
+  </div>
+  <div class="divider"></div>
+
+  <p>All features implemented across development sessions on <strong>2 July 2026</strong>. Latest commit: <code>577a5ec</code> on branch <code>main</code> — <code>Surya342001/Aurbis</code>.</p>
+
+  <div class="feat-card">
+    <div class="feat-icon feat-icon-amber">🎨</div>
+    <div>
+      <strong style="color:#1e293b">1. Theme Color Change: Purple → Teal (AgentPanel.jsx) · commit 1c3d80c</strong>
+      <p style="font-size:13px; margin-top:6px">Changed the "Goal Blueprint" (Plan mode) theme from <strong>purple</strong> to <strong>teal</strong> throughout <code>AgentPanel.jsx</code>. 45 class replacements: active tab highlight, glow animation, borders, badges, spinners, progress bars, task cards, all hover states.</p>
+      <p style="font-size:12px; color:#94a3b8; margin-top:4px">File: <code>frontend/src/components/AgentPanel.jsx</code></p>
+      <div style="margin-top:10px; display:flex; gap:12px; align-items:center;">
+        <span style="background:#7c3aed; color:white; padding:4px 12px; border-radius:6px; font-size:12px;">Before: Purple</span>
+        <span style="font-size:18px;">→</span>
+        <span style="background:#0d9488; color:white; padding:4px 12px; border-radius:6px; font-size:12px;">After: Teal</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-icon feat-icon-green">❤️</div>
+    <div>
+      <strong style="color:#1e293b">2. Space Favorites · commit 38bf8aa</strong>
+      <p style="font-size:13px; margin-top:6px">Added a <strong>heart button</strong> to every space card. Clicking it toggles the space as a favorite, persisted in <code>localStorage</code> (key: <code>aurbis_favorites</code>). A custom browser event <code>aurbis_favorites_changed</code> is dispatched so SpaceExplorer syncs in real time without a page refresh. A new <strong>"❤️ Saved"</strong> filter tab appears in SpaceExplorer with a count badge, showing only favorited spaces.</p>
+      <p style="font-size:12px; color:#94a3b8; margin-top:4px">Files: <code>frontend/src/components/SpaceCard.jsx</code>, <code>frontend/src/components/SpaceExplorer.jsx</code></p>
+    </div>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-icon feat-icon-blue">📱</div>
+    <div>
+      <strong style="color:#1e293b">3. Real Scannable QR Code · commit 38bf8aa</strong>
+      <p style="font-size:13px; margin-top:6px">The booking confirmation card now shows a <strong>real, scannable QR code</strong> instead of a static icon. The QR encodes the <code>AUR-XXXXXX</code> booking ID. Generated on demand via <code>api.qrserver.com</code> (free, no API key needed). The image is fetched with the booking ID as the data payload, sized 96×96px, displayed in a white-padded 56×56px container.</p>
+      <p style="font-size:12px; color:#94a3b8; margin-top:4px">File: <code>frontend/src/components/ChatWidget.jsx</code></p>
+<pre style="margin-top:8px; font-size:11px;"><code>https://api.qrserver.com/v1/create-qr-code/?size=96x96&amp;data={bookingId}&amp;bgcolor=ffffff&amp;color=000000</code></pre>
+    </div>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-icon feat-icon-teal">🧾</div>
+    <div>
+      <strong style="color:#1e293b">4. Booking History Panel · commit 38bf8aa</strong>
+      <p style="font-size:13px; margin-top:6px">Every completed booking is now saved to <code>localStorage</code> (key: <code>aurbis_booking_history</code>, max 30 entries). A new <strong>🧾 button</strong> in the Nova chat header opens a history panel showing all past bookings: space name, location, date, time, booking ID, and price. A teal dot badge appears on the button when history exists. A "Clear all" button removes all history. The panel syncs live via the <code>aurbis_history_changed</code> event dispatched after each booking.</p>
+      <p style="font-size:12px; color:#94a3b8; margin-top:4px">File: <code>frontend/src/components/ChatWidget.jsx</code></p>
+    </div>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-icon feat-icon-blue" style="background:#eff6ff">🤖</div>
+    <div>
+      <strong style="color:#1e293b">5. AI Features Showcase Section · commit 577a5ec</strong>
+      <p style="font-size:13px; margin-top:6px">Added a new <strong>"Under the Hood"</strong> section to the landing page (between HowItWorks and StatsSection). It contains 4 animated, live-demo cards that visually explain each AI pattern powering Nova:</p>
+      <div class="grid-2" style="margin-top:12px;">
+        <div class="card" style="padding:14px;">
+          <strong style="font-size:13px;">🧠 RAG Pipeline</strong>
+          <p style="font-size:12px; margin-top:4px">5-step animated pipeline cycling through: User Query → Embed → ChromaDB Search → Context Inject → LLM Answer. Each active step glows with its own color.</p>
+        </div>
+        <div class="card" style="padding:14px;">
+          <strong style="font-size:13px;">⚡ ReAct Agent</strong>
+          <p style="font-size:12px; margin-top:4px">Live terminal with typewriter animation showing Thought / Action / Observe / Final Answer in color-coded output. Scrolls automatically as new lines appear.</p>
+        </div>
+        <div class="card" style="padding:14px;">
+          <strong style="font-size:13px;">🔍 Semantic Search</strong>
+          <p style="font-size:12px; margin-top:4px">4 rotating examples showing how a natural language query expands to AI concepts then maps to ranked space results. Animated fade-in transitions per phase.</p>
+        </div>
+        <div class="card" style="padding:14px;">
+          <strong style="font-size:13px;">🛡️ Self-Healing RAG</strong>
+          <p style="font-size:12px; margin-top:4px">Animated 4-step loop: query sent → low confidence detected → query reformulated → retry with better answer. Each step highlights in sequence.</p>
+        </div>
+      </div>
+      <p style="font-size:12px; color:#94a3b8; margin-top:10px">File: <code>frontend/src/components/AIShowcase.jsx</code> (new) · <code>frontend/src/App.jsx</code> (updated)</p>
+    </div>
+  </div>
+
+  <h2 style="margin-top: 32px;">Summary of Current State</h2>
+  <table>
+    <tr><th>Component</th><th>Status</th><th>Notes</th></tr>
+    <tr><td>Backend (FastAPI)</td><td><span class="pill pill-green">✅ Running</span></td><td>Port 8000 · Ollama/llama3 mode</td></tr>
+    <tr><td>Frontend (React)</td><td><span class="pill pill-green">✅ Running</span></td><td>Port 5173 · Hot reload active</td></tr>
+    <tr><td>Ollama LLM</td><td><span class="pill pill-green">✅ Active</span></td><td>llama3 model · localhost:11434</td></tr>
+    <tr><td>OpenAI</td><td><span class="pill pill-red">❌ Quota exceeded</span></td><td>Top up billing at platform.openai.com/settings/billing</td></tr>
+    <tr><td>ChromaDB</td><td><span class="pill pill-green">✅ Ready</span></td><td>Knowledge base indexed with Ollama embeddings</td></tr>
+    <tr><td>Email (Gmail)</td><td><span class="pill pill-green">✅ Configured</span></td><td>maheshwaransurya97@gmail.com with App Password</td></tr>
+    <tr><td>Space Favorites</td><td><span class="pill pill-green">✅ Live</span></td><td>Heart button on SpaceCard · localStorage · Saved tab in Explorer</td></tr>
+    <tr><td>Real QR Code</td><td><span class="pill pill-green">✅ Live</span></td><td>api.qrserver.com · auto-generated on booking confirmation</td></tr>
+    <tr><td>Booking History</td><td><span class="pill pill-green">✅ Live</span></td><td>🧾 panel in chat header · localStorage · last 30 bookings</td></tr>
+    <tr><td>AI Showcase</td><td><span class="pill pill-green">✅ Live</span></td><td>4 animated cards on landing page · scrolls to demo on click</td></tr>
+    <tr><td>GitHub Repo</td><td><span class="pill pill-green">✅ Up to date</span></td><td>Surya342001/Aurbis · branch: main · latest: 577a5ec</td></tr>
+  </table>
+
+  <div class="highlight-box" style="margin-top:32px;">
+    <h3>🚀 What to try next?</h3>
+    <p>1. <strong>Heart a space</strong>: Browse spaces → click the ❤️ button → switch to the "❤️ Saved" tab to see your favorites.</p>
+    <p>2. <strong>Book and check QR</strong>: Complete a booking via chat → see the real scannable QR code on the confirmation card.</p>
+    <p>3. <strong>Check booking history</strong>: After booking, click the 🧾 button in the Nova chat header to see all past bookings.</p>
+    <p>4. <strong>Explore AI Showcase</strong>: Scroll below "How It Works" on the landing page → watch the RAG pipeline, ReAct agent, and semantic search animations live.</p>
+    <p>5. <strong>Try Agent Mode</strong>: Click "Agent Mode" → type a complex goal → watch Nova reason through it live.</p>
+    <p>6. <strong>Top up OpenAI credits</strong> at <code>platform.openai.com/settings/billing</code> to unlock GPT-4o-mini for smarter responses.</p>
+  </div>
+</div>
+
+</body>
+</html>
