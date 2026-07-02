@@ -556,8 +556,12 @@ function BookingConfirmCard({ details }) {
 
           {/* QR / access section */}
           <div className="mx-4 mb-4 bg-white/5 border border-white/8 rounded-xl p-3 flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
-              <QrCode size={22} className="text-slate-300" />
+            <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-white p-1">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=96x96&data=${encodeURIComponent(details.booking_id || 'AUR')}&bgcolor=ffffff&color=000000`}
+                alt={`QR code for ${details.booking_id}`}
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <p className="text-white text-xs font-semibold">QR Access Pass</p>
@@ -777,6 +781,19 @@ export default function ChatWidget({ onSpacesHighlight }) {
   const [loading, setLoading] = useState(false)
   const [voiceActive, setVoiceActive] = useState(false)
   const [celebrationDetails, setCelebrationDetails] = useState(null)
+  const [showHistory, setShowHistory] = useState(false)
+  const [bookingHistory, setBookingHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('aurbis_booking_history') || '[]') } catch { return [] }
+  })
+
+  // Sync history when new booking is added
+  useEffect(() => {
+    const sync = () => {
+      try { setBookingHistory(JSON.parse(localStorage.getItem('aurbis_booking_history') || '[]')) } catch {}
+    }
+    window.addEventListener('aurbis_history_changed', sync)
+    return () => window.removeEventListener('aurbis_history_changed', sync)
+  }, [])
   // AI features state
   const [entities, setEntities] = useState([])
   const [intentScore, setIntentScore] = useState(0)
@@ -846,6 +863,13 @@ export default function ChatWidget({ onSpacesHighlight }) {
         ))
         if (meta.booking_confirmed && meta.booking_details) {
           setCelebrationDetails(meta.booking_details)
+          // Persist booking to history
+          try {
+            const history = JSON.parse(localStorage.getItem('aurbis_booking_history') || '[]')
+            history.unshift({ ...meta.booking_details, saved_at: new Date().toISOString() })
+            localStorage.setItem('aurbis_booking_history', JSON.stringify(history.slice(0, 30)))
+            window.dispatchEvent(new Event('aurbis_history_changed'))
+          } catch {}
         }
         if (meta.suggested_spaces?.length && onSpacesHighlight) {
           onSpacesHighlight(meta.suggested_spaces)
@@ -936,6 +960,16 @@ export default function ChatWidget({ onSpacesHighlight }) {
           >
             📊
           </button>
+          <button
+            onClick={() => setShowHistory(v => !v)}
+            title="Booking History"
+            className={`relative p-2 rounded-lg transition-colors text-sm ${showHistory ? 'bg-teal-500/20 text-teal-400' : 'hover:bg-white/8 text-slate-500 hover:text-slate-300'}`}
+          >
+            🧾
+            {bookingHistory.length > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-teal-400" />
+            )}
+          </button>
           <button onClick={reset} className="p-2 rounded-lg hover:bg-white/8 text-slate-500 hover:text-slate-300 transition-colors" title="Reset conversation">
             <RefreshCw size={15} />
           </button>
@@ -944,6 +978,47 @@ export default function ChatWidget({ onSpacesHighlight }) {
 
       {/* AI Session Analytics Dashboard */}
       {showInsights && <AIInsightsPanel messages={messages} />}
+
+      {/* Booking History Panel */}
+      {showHistory && (
+        <div className="border-b border-white/8 bg-[#060e1f] max-h-64 overflow-y-auto">
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/6">
+            <p className="text-white text-xs font-semibold">🧾 Booking History</p>
+            <div className="flex items-center gap-2">
+              {bookingHistory.length > 0 && (
+                <button
+                  onClick={() => { localStorage.removeItem('aurbis_booking_history'); setBookingHistory([]) }}
+                  className="text-xs text-slate-500 hover:text-red-400 transition-colors"
+                >Clear all</button>
+              )}
+              <button onClick={() => setShowHistory(false)} className="text-slate-500 hover:text-white transition-colors">
+                <X size={13} />
+              </button>
+            </div>
+          </div>
+          {bookingHistory.length === 0 ? (
+            <div className="px-4 py-6 text-center text-slate-500 text-xs">No bookings yet. Complete a booking via chat to see history here.</div>
+          ) : (
+            <div className="divide-y divide-white/4">
+              {bookingHistory.map((b, i) => (
+                <div key={i} className="px-4 py-2.5 flex items-center gap-3 hover:bg-white/3 transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/25 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle size={14} className="text-teal-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-xs font-semibold truncate">{b.space_name || 'Aurbis Space'}</p>
+                    <p className="text-slate-500 text-xs truncate">{b.location} · {b.date} {b.time}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-teal-400 text-xs font-mono">{b.booking_id}</p>
+                    <p className="text-slate-600 text-xs">{b.price}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* AI Persona Memory — "Nova knows you" bar */}
       {userProfile.queryCount >= 2 && (userProfile.locs.length > 0 || userProfile.types.length > 0) && (

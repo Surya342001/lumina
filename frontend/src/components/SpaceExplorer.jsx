@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Search, SlidersHorizontal, X, Sparkles } from 'lucide-react'
 import SpaceCard from './SpaceCard'
 import { SPACES } from '../api'
@@ -59,6 +59,18 @@ export default function SpaceExplorer({ highlightedIds = [], onBook }) {
   const [maxPrice, setMaxPrice] = useState('')
   const [minCapacity, setMinCapacity] = useState('')
   const [aiMode, setAiMode] = useState(false)   // semantic search mode
+  const [favorites, setFavorites] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('aurbis_favorites') || '[]') } catch { return [] }
+  })
+
+  // Sync favorites from SpaceCard heart toggles
+  useEffect(() => {
+    const sync = () => {
+      try { setFavorites(JSON.parse(localStorage.getItem('aurbis_favorites') || '[]')) } catch {}
+    }
+    window.addEventListener('aurbis_favorites_changed', sync)
+    return () => window.removeEventListener('aurbis_favorites_changed', sync)
+  }, [])
 
   // Compute semantic expansion when aiMode is on
   const { queryWords, expandedTerms, matchedConcepts } = useMemo(() => {
@@ -83,7 +95,8 @@ export default function SpaceExplorer({ highlightedIds = [], onBook }) {
             !s.ideal_for.some(i => i.toLowerCase().includes(search.toLowerCase()))) return false
       }
 
-      if (location !== 'All' && s.location !== location) return false
+      if (location !== 'All' && location !== '❤️ Saved' && s.location !== location) return false
+      if (location === '❤️ Saved' && !favorites.includes(s.id)) return false
       if (type && s.type !== type) return false
       if (maxPrice && s.pricing.hourly > Number(maxPrice)) return false
       if (minCapacity && s.capacity < Number(minCapacity)) return false
@@ -104,7 +117,7 @@ export default function SpaceExplorer({ highlightedIds = [], onBook }) {
       if (!a.featured && b.featured) return 1
       return b.rating - a.rating
     })
-  }, [search, location, type, maxPrice, minCapacity, highlightedIds, aiMode, queryWords, expandedTerms])
+  }, [search, location, type, maxPrice, minCapacity, highlightedIds, aiMode, queryWords, expandedTerms, favorites])
 
   const resetFilters = () => {
     setSearch(''); setLocation('All'); setType(''); setMaxPrice(''); setMinCapacity('')
@@ -192,6 +205,15 @@ export default function SpaceExplorer({ highlightedIds = [], onBook }) {
             {loc}
           </button>
         ))}
+        <button
+          onClick={() => setLocation('❤️ Saved')}
+          className={`flex-shrink-0 text-xs px-2.5 py-1 rounded-full border transition-all
+            ${location === '❤️ Saved'
+              ? 'bg-red-500/20 border-red-500/60 text-red-300'
+              : 'border-white/8 text-slate-500 hover:text-red-300 hover:border-red-500/30'}`}
+        >
+          ❤️ Saved {favorites.length > 0 && <span className="ml-0.5 font-bold">{favorites.length}</span>}
+        </button>
       </div>
 
       {/* Advanced filters */}

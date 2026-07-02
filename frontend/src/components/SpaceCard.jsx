@@ -1,5 +1,5 @@
-import React from 'react'
-import { Star, Users, Zap } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Star, Users, Zap, Heart } from 'lucide-react'
 
 const ACCENT = {
   blue:  { left: 'border-l-blue-500',   price: 'text-blue-400',   btn: 'bg-blue-600 hover:bg-blue-500',   badge: 'bg-blue-950/60 text-blue-300 border-blue-800/50' },
@@ -10,6 +10,22 @@ const ACCENT = {
 export default function SpaceCard({ space, highlighted, onBook }) {
   const a = ACCENT[space.color] || ACCENT.blue
   const price = space.pricing?.hourly
+
+  const [isFaved, setIsFaved] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('aurbis_favorites') || '[]').includes(space.id) }
+    catch { return false }
+  })
+
+  const toggleFav = (e) => {
+    e.stopPropagation()
+    try {
+      const favs = JSON.parse(localStorage.getItem('aurbis_favorites') || '[]')
+      const next = isFaved ? favs.filter(id => id !== space.id) : [...favs, space.id]
+      localStorage.setItem('aurbis_favorites', JSON.stringify(next))
+      setIsFaved(!isFaved)
+      window.dispatchEvent(new Event('aurbis_favorites_changed'))
+    } catch {}
+  }
 
   return (
     <div className={`relative bg-white/4 border-l-2 ${a.left} border border-white/10 rounded-xl
@@ -23,10 +39,22 @@ export default function SpaceCard({ space, highlighted, onBook }) {
             <h3 className="text-white font-semibold text-sm leading-snug">{space.name}</h3>
             <p className={`text-xs mt-0.5 ${a.price}`}>{space.type_label}</p>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0 text-xs">
-            <Star size={10} className="text-yellow-400 fill-yellow-400" />
-            <span className="text-slate-300 font-medium">{space.rating}</span>
-            <span className="text-slate-600">({space.reviews})</span>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={toggleFav}
+              title={isFaved ? 'Remove from saved' : 'Save space'}
+              className="transition-all duration-150 active:scale-90"
+            >
+              <Heart
+                size={14}
+                className={isFaved ? 'text-red-400 fill-red-400' : 'text-slate-600 hover:text-red-400'}
+              />
+            </button>
+            <div className="flex items-center gap-1 text-xs">
+              <Star size={10} className="text-yellow-400 fill-yellow-400" />
+              <span className="text-slate-300 font-medium">{space.rating}</span>
+              <span className="text-slate-600">({space.reviews})</span>
+            </div>
           </div>
         </div>
 
