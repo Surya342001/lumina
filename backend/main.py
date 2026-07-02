@@ -9,7 +9,7 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Form, BackgroundTasks, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -480,3 +480,72 @@ def book_space(req: BookingRequest):
             f"Total: ₹{total_price:,}. Booking ID: {booking_id}"
         )
     )
+
+
+# ──────────────────────────────────────────────
+# WhatsApp Bot (Twilio Webhook)
+# ──────────────────────────────────────────────
+from whatsapp_bot import process_message, send_whatsapp_message
+
+SIMPLE_COMMANDS = {"hi", "hello", "hey", "start", "/start", "hii", "helo",
+                   "help", "/help", "?", "reset", "clear", "/reset", "restart"}
+
+@app.post("/api/whatsapp")
+async def whatsapp_webhook(
+    background_tasks: BackgroundTasks,
+    From: str = Form(...),
+    Body: str = Form(default=""),
+):
+    """
+    Twilio WhatsApp webhook.
+    - Simple commands respond inline (< 1s).
+    - RAG/LLM queries: send 'thinking' TwiML immediately, reply async via Twilio REST.
+
+    Setup:
+      1. Free Twilio account -> https://www.twilio.com/
+      2. WhatsApp Sandbox -> console.twilio.com/.../whatsapp-learn
+      3. Expose backend: ngrok http 8000
+      4. Set Sandbox webhook URL -> https://xxxx.ngrok.io/api/whatsapp
+      5. Add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_NUMBER to .env
+    """
+    from twilio.twiml.messaging_response import MessagingResponse
+
+    text = (Body or "").strip()
+
+    def twiml(msg: str) -> Response:
+        r = MessagingResponse()
+        r.message(msg)
+        return Response(content=str(r), media_type="application/xml")
+
+    # Fast path: static commands respond immediately
+    if text.lower() in SIMPLE_COMMANDS:
+        reply = await process_message(From, text, rag)
+        return twiml(reply)
+
+    # Slow path: RAG takes 5-20s → acknowledge instantly, reply async
+    async def _bg():
+        reply = await process_message(From, text, rag)
+        try:
+            send_whatsapp_message(to=From, body=reply)
+        except Exception as e:
+            print(f"[WhatsApp] Failed to send async reply: {e}")
+
+    background_tasks.add_task(_bg)
+
+    # Immediate acknowledgment (Twilio needs response within 15s)
+    return twiml("🤔 Searching Aurbis spaces for you, one moment...")
+
+
+@app.get("/api/whatsapp/status")
+def whatsapp_status():
+    """Check if Twilio credentials are configured."""
+    sid = os.getenv("TWILIO_ACCOUNT_SID", "")
+    tok = os.getenv("TWILIO_AUTH_TOKEN", "")
+    num = os.getenv("TWILIO_WHATSAPP_NUMBER", "whatsapp:+14155238886")
+    configured = bool(sid and tok and not sid.startswith("your_"))
+    return {
+        "configured": configured,
+        "whatsapp_number": num if configured else "not_set",
+        "webhook_url": "/api/whatsapp",
+        "setup_guide": "https://console.twilio.com/us1/develop/sms/try-it-out/whatsapp-learn"
+    }
