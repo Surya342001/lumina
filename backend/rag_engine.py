@@ -413,8 +413,18 @@ class AurbisRAG:
         return None
 
     def _extract_time(self, msg: str) -> Optional[str]:
-        m = re.search(r'(\d{1,2}(?::\d{2})?\s*(?:am|pm))', msg, re.IGNORECASE)
-        return m.group(1).upper() if m else None
+        # Match: 3pm, 3:00pm, 3:00 PM, 3:00 p.m., 3 P.M., 3.00pm, etc.
+        m = re.search(
+            r'(\d{1,2}(?:[:.\s]\d{2})?\s*(?:a\.?\s?m\.?|p\.?\s?m\.?))',
+            msg, re.IGNORECASE)
+        if not m:
+            return None
+        raw = m.group(1).strip()
+        # Normalize: strip dots/spaces inside am/pm, uppercase
+        digits = re.match(r'(\d{1,2}(?:[:.\s]\d{2})?)', raw)
+        suffix = re.sub(r'[.\s]', '', raw[digits.end():]).upper()
+        time_str = digits.group(1).replace(' ', '').replace('.', ':') + suffix
+        return time_str
 
     def _extract_location(self, msg: str) -> Optional[str]:
         # Ordered from most-specific to avoid partial matches
@@ -600,8 +610,9 @@ class AurbisRAG:
                 if time_val:
                     context['time'] = time_val
 
-            if context.get('location') and context.get('space_type'):
-                break  # have the two most important fields
+            # Only stop early if we have ALL 5 key fields
+            if all(context.get(k) for k in ('location', 'space_type', 'capacity', 'date', 'time')):
+                break
         return context
 
     def _extract_space_option(self, msg: str, cap: int = 0) -> Optional[dict]:
@@ -1031,6 +1042,10 @@ class AurbisRAG:
         if not date or not time_val:
             booking['step'] = 'awaiting_datetime'
             self.booking_sessions[session_id] = booking
+            if date and not time_val:
+                return {"answer": f"**{location}** — perfect! 📅 Got **{date}** — what **time** do you need it, **{name}**?\n*(e.g. \"10am\", \"2:30pm\", \"3pm\")*", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
+            if time_val and not date:
+                return {"answer": f"Got **{time_val}** — what **date** works for you, **{name}**?\n*(e.g. \"tomorrow\", \"Friday\", \"July 5th\")*", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
             return {"answer": f"**{location}** — great choice! ✨ Almost done, **{name}**!\n\nJust one more thing — when do you need it?\n*(Try: \"Tomorrow 3pm\", \"Friday morning\", \"July 5th at 2pm\" — whatever works!)*", "sources": [], "mode": self.rag_backend, "suggested_spaces": []}
 
         if 'email' not in booking:
