@@ -309,29 +309,19 @@
     <span class="badge badge-amber">React · Vite · TailwindCSS</span>
     <span class="badge badge-green">Ollama · ChromaDB</span>
     <span class="badge badge-blue">ReAct Agent</span>
-    <span class="badge badge-teal">Gmail Email Confirmations</span>
+    <span class="badge badge-teal">Gmail Confirmations</span>
     <span class="badge badge-green">Space Favorites</span>
     <span class="badge badge-amber">Real QR Code</span>
     <span class="badge badge-blue">Booking History</span>
+    <span class="badge badge-teal">WhatsApp Chatbot</span>
+    <span class="badge badge-green">AI Showcase</span>
   </div>
 
   <div class="cover-meta">
-    <div class="meta-item">
-      <div class="meta-num">41</div>
-      <div class="meta-label">Spaces</div>
-    </div>
-    <div class="meta-item">
-      <div class="meta-num">13</div>
-      <div class="meta-label">Areas</div>
-    </div>
-    <div class="meta-item">
-      <div class="meta-num">11</div>
-      <div class="meta-label">API Endpoints</div>
-    </div>
-    <div class="meta-item">
-      <div class="meta-num">8</div>
-      <div class="meta-label">Features</div>
-    </div>
+    <div class="meta-item"><div class="meta-num">41</div><div class="meta-label">Spaces</div></div>
+    <div class="meta-item"><div class="meta-num">13</div><div class="meta-label">Areas</div></div>
+    <div class="meta-item"><div class="meta-num">13</div><div class="meta-label">API Endpoints</div></div>
+    <div class="meta-item"><div class="meta-num">9</div><div class="meta-label">Features</div></div>
   </div>
 </div>
 
@@ -362,6 +352,7 @@
   <div class="toc-item"><span class="toc-num">14</span><span><strong>How to Run</strong> — Step-by-step startup guide</span><span class="toc-dots"></span><span class="toc-pg">16</span></div>
   <div class="toc-item"><span class="toc-num">15</span><span><strong>Changes Made</strong> — All features implemented across sessions</span><span class="toc-dots"></span><span class="toc-pg">17</span></div>
   <div class="toc-item"><span class="toc-num">16</span><span><strong>Feature User Guides</strong> — Step-by-step how to use every feature</span><span class="toc-dots"></span><span class="toc-pg">18</span></div>
+  <div class="toc-item"><span class="toc-num">17</span><span><strong>WhatsApp Chatbot</strong> — Twilio setup, webhook, architecture</span><span class="toc-dots"></span><span class="toc-pg">19</span></div>
 </div>
 
 
@@ -1191,6 +1182,11 @@
 <span class="kw">GMAIL_USER</span>=<span class="str">your@gmail.com</span>          <span class="cm">← Gmail address to send FROM</span>
 <span class="kw">GMAIL_APP_PASSWORD</span>=<span class="str">xxxxxxxxxxxxxxxx</span> <span class="cm">← 16-char Gmail App Password</span>
 
+<span class="cm"># ── WhatsApp Bot (Twilio)</span>
+<span class="kw">TWILIO_ACCOUNT_SID</span>=<span class="str">ACxxxxxxxxxxxxxxxx</span>    <span class="cm">← From console.twilio.com</span>
+<span class="kw">TWILIO_AUTH_TOKEN</span>=<span class="str">xxxxxxxxxxxxxxxx</span>      <span class="cm">← From console.twilio.com</span>
+<span class="kw">TWILIO_WHATSAPP_NUMBER</span>=<span class="str">whatsapp:+14155238886</span> <span class="cm">← Sandbox number (default)</span>
+
 <span class="cm"># ── Optional Ollama config (defaults shown)</span>
 <span class="kw">OLLAMA_MODEL</span>=<span class="str">llama3</span>                 <span class="cm">← Which Ollama model to use</span>
 <span class="kw">DEMO_MODE</span>=<span class="str">false</span>                     <span class="cm">← Force demo mode (no LLM at all)</span></code></pre>
@@ -1202,6 +1198,9 @@
     <tr><td><code>EMBEDDING_MODEL</code></td><td>Optional</td><td>Defaults to <code>text-embedding-3-small</code></td></tr>
     <tr><td><code>GMAIL_USER</code></td><td>Optional</td><td>Email sending is silently skipped</td></tr>
     <tr><td><code>GMAIL_APP_PASSWORD</code></td><td>Optional</td><td>Email sending is silently skipped</td></tr>
+    <tr><td><code>TWILIO_ACCOUNT_SID</code></td><td>Optional</td><td>WhatsApp bot replies fail silently; all other features unaffected</td></tr>
+    <tr><td><code>TWILIO_AUTH_TOKEN</code></td><td>Optional</td><td>WhatsApp bot replies fail silently</td></tr>
+    <tr><td><code>TWILIO_WHATSAPP_NUMBER</code></td><td>Optional</td><td>Defaults to sandbox <code>whatsapp:+14155238886</code></td></tr>
     <tr><td><code>OLLAMA_MODEL</code></td><td>Optional</td><td>Defaults to <code>llama3</code></td></tr>
     <tr><td><code>DEMO_MODE</code></td><td>Optional</td><td>If <code>true</code>, skips all LLM setup and uses keyword rules</td></tr>
   </table>
@@ -1285,7 +1284,7 @@ source venv/bin/activate
   </div>
   <div class="divider"></div>
 
-  <p>All features implemented across development sessions on <strong>2 July 2026</strong>. Latest commit: <code>577a5ec</code> on branch <code>main</code> — <code>Surya342001/Aurbis</code>.</p>
+  <p>All features implemented across development sessions on <strong>2 July 2026</strong>. Latest commit: <code>fe9807a</code> on branch <code>main</code> — <code>Surya342001/Aurbis</code>.</p>
 
   <div class="feat-card">
     <div class="feat-icon feat-icon-amber">🎨</div>
@@ -1356,6 +1355,25 @@ source venv/bin/activate
     </div>
   </div>
 
+  <div class="feat-card">
+    <div class="feat-icon feat-icon-green" style="background:#f0fdf4">📱</div>
+    <div>
+      <strong style="color:#1e293b">6. WhatsApp Chatbot via Twilio · commit fe9807a</strong>
+      <p style="font-size:13px; margin-top:6px">Built a full WhatsApp chatbot powered by Nova's RAG engine. Incoming messages from WhatsApp users are received via Twilio's webhook at <code>/api/whatsapp</code>. Fast commands (hi, help, reset) respond inline via TwiML in &lt;1s. Complex RAG queries send an instant acknowledgment first, then process in the background and reply via Twilio's REST API to avoid the 15-second webhook timeout.</p>
+      <div class="grid-2" style="margin-top:10px">
+        <div class="card" style="padding:12px">
+          <strong style="font-size:12px">⚡ Two-path Architecture</strong>
+          <p style="font-size:12px; margin-top:4px">Fast path: static commands → TwiML inline response. Slow path: RAG processing → instant acknowledgment + async Twilio REST reply.</p>
+        </div>
+        <div class="card" style="padding:12px">
+          <strong style="font-size:12px">🧠 RAG-powered replies</strong>
+          <p style="font-size:12px; margin-top:4px">Uses phone number as <code>session_id</code> so the RAG engine maintains conversation history per user automatically.</p>
+        </div>
+      </div>
+      <p style="font-size:12px; color:#94a3b8; margin-top:8px">New files: <code>backend/whatsapp_bot.py</code> · Updated: <code>backend/main.py</code>, <code>backend/requirements.txt</code></p>
+    </div>
+  </div>
+
   <h2 style="margin-top: 32px;">Summary of Current State</h2>
   <table>
     <tr><th>Component</th><th>Status</th><th>Notes</th></tr>
@@ -1369,7 +1387,8 @@ source venv/bin/activate
     <tr><td>Real QR Code</td><td><span class="pill pill-green">✅ Live</span></td><td>api.qrserver.com · auto-generated on booking confirmation</td></tr>
     <tr><td>Booking History</td><td><span class="pill pill-green">✅ Live</span></td><td>🧾 panel in chat header · localStorage · last 30 bookings</td></tr>
     <tr><td>AI Showcase</td><td><span class="pill pill-green">✅ Live</span></td><td>4 animated cards on landing page · scrolls to demo on click</td></tr>
-    <tr><td>GitHub Repo</td><td><span class="pill pill-green">✅ Up to date</span></td><td>Surya342001/Aurbis · branch: main · latest: 577a5ec</td></tr>
+    <tr><td>WhatsApp Bot</td><td><span class="pill pill-amber">⚡ Ready</span></td><td>Twilio webhook at /api/whatsapp · add TWILIO_ACCOUNT_SID + AUTH_TOKEN to activate</td></tr>
+    <tr><td>GitHub Repo</td><td><span class="pill pill-green">✅ Up to date</span></td><td>Surya342001/Aurbis · branch: main · latest: fe9807a</td></tr>
   </table>
 
   <div class="highlight-box" style="margin-top:32px;">

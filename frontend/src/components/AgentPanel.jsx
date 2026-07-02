@@ -349,6 +349,7 @@ function SharePanel({ goal, result }) {
   const [notice,  setNotice]  = useState('')
   const [receipt, setReceipt] = useState(null)
   const [sending, setSending] = useState(false)
+  const [toast,   setToast]   = useState(false)
 
   const whatsappUrl = useMemo(() => {
     const text = `Aurbis Nova Agent Result\n\nGoal: ${goal}\n\nResult:\n${result}`
@@ -373,6 +374,9 @@ function SharePanel({ goal, result }) {
         message: data.message || 'Delivery successful. Receipt generated.',
         processedAt: data.processed_at ? new Date(data.processed_at).toLocaleString() : new Date().toLocaleString(),
       })
+      // Show success toast
+      setToast(true)
+      setTimeout(() => setToast(false), 3500)
       setNotice('')
     } catch (error) {
       setNotice(error.message)
@@ -383,6 +387,24 @@ function SharePanel({ goal, result }) {
 
   return (
     <div className="mt-3 overflow-hidden rounded-2xl border border-emerald-500/25 bg-emerald-500/8">
+      {/* ── Success toast popup ── */}
+      <div style={{
+        position: 'fixed', top: 24, left: '50%', transform: toast ? 'translate(-50%, 0)' : 'translate(-50%, -80px)',
+        opacity: toast ? 1 : 0, transition: 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+        zIndex: 9999, pointerEvents: 'none',
+      }}>
+        <div style={{
+          background: 'linear-gradient(135deg,#064e3b,#065f46)', border: '1px solid rgba(52,211,153,0.4)',
+          borderRadius: 14, padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 10,
+          boxShadow: '0 8px 32px rgba(16,185,129,0.35)', backdropFilter: 'blur(12px)',
+        }}>
+          <span style={{ fontSize: 20 }}>🎉</span>
+          <div>
+            <div style={{ color: '#6ee7b7', fontWeight: 700, fontSize: 14 }}>Email Delivered!</div>
+            <div style={{ color: '#a7f3d0', fontSize: 12, marginTop: 2 }}>Result sent to {receipt?.email}</div>
+          </div>
+        </div>
+      </div>
       <div className="border-b border-emerald-500/15 bg-gradient-to-r from-emerald-500/12 to-cyan-500/8 px-3 py-3">
         <div className="flex items-center gap-2">
           <span className="text-sm">📤</span>
@@ -419,7 +441,7 @@ function SharePanel({ goal, result }) {
             <div className="rounded-xl border border-white/8 bg-white/5 p-3">
               <div className="mb-2 flex items-center justify-between border-b border-white/8 pb-2">
                 <span className="text-xs text-slate-500">Nova Receipt</span>
-                <span className="text-sm font-semibold text-emerald-300">₹0.00</span>
+                <span className="text-xs font-semibold text-emerald-300 bg-emerald-500/15 border border-emerald-500/25 rounded-full px-2.5 py-0.5">NO CHARGE</span>
               </div>
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between gap-3"><span className="text-slate-600">Receipt ID</span><span className="font-mono text-slate-300">{receipt.id}</span></div>
