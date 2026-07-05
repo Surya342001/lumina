@@ -8,17 +8,22 @@ import HowItWorks from './components/HowItWorks'
 import StatsSection from './components/StatsSection'
 import AgentPanel from './components/AgentPanel'
 import AIShowcase from './components/AIShowcase'
+import VoiceConversation from './components/VoiceConversation'
 
 export default function App() {
   const [highlightedIds, setHighlightedIds] = useState([])
   const [bookingSpace, setBookingSpace] = useState(null)
   const [appMode, setAppMode] = useState('chat')   // 'chat' | 'agent'
+  const [activePage, setActivePage] = useState('home')  // 'home' | 'voice'
 
   return (
     <div className="min-h-screen bg-aurbis-dark font-sans">
-      <Header />
+      <Header activePage={activePage} onNavigate={setActivePage} />
 
-      <main>
+      {/* Voice Conversation page */}
+      {activePage === 'voice' && <VoiceConversation />}
+
+      <main style={{ display: activePage === 'voice' ? 'none' : undefined }}>
         {/* Hero */}
         <HeroSection />
 
